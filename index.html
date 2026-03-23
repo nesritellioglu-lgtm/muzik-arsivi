@@ -2,60 +2,113 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Müzik Arşivi</title>
+    <title>🎵 SongMaster Pro Arşivi</title>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f0f2f5; }
+        .filter-panel { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+        .hit-badge { background: #ff4757; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
+        .instr-tag { background: #e1eafc; color: #2e5da7; padding: 2px 5px; border-radius: 3px; font-size: 11px; margin-right: 3px; border: 1px solid #bcd0f7; }
+    </style>
 </head>
-<body style="font-family: sans-serif; padding: 20px;">
-    <h2>🎵 Birleşik Şarkı Listesi</h2>
+<body>
+
+    <div class="filter-panel">
+        <strong>Hızlı Filtrele:</strong>
+        <div>
+            <label>🎵 Tür:</label>
+            <select id="genreFilter"><option value="">Hepsi</option></select>
+        </div>
+        <div>
+            <input type="checkbox" id="hitFilter"> <label for="hitFilter" style="color:#ff4757; font-weight:bold;">🔥 Sadece HIT Şarkılar</label>
+        </div>
+        <div>
+            <label>🎻 Enstrüman:</label>
+            <input type="text" id="instrSearch" placeholder="Örn: Çello">
+        </div>
+    </div>
+
     <table id="anaTablo" class="display" style="width:100%">
         <thead>
             <tr>
                 <th>Şarkı</th>
                 <th>Tür</th>
-                <th>Müzik</th>
-                <th>Söz</th>
+                <th>Müzik/Söz/Özgünlük</th>
+                <th>Enstrümanlar</th>
                 <th>Fiyat (M)</th>
+                <th>Durum</th>
             </tr>
         </thead>
-        <tbody></tbody>
     </table>
 
     <script>
-    async function verileriGetir() {
-        const kullanici = "nesritellioglu-lgtm"; // Burayı değiştir!
+    async function verileriBaslat() {
+        const kullanici = "GITHUB_KULLANICI_ADIN"; // Kendi adınla değiştir!
         const repo = "muzik-arsivi";
         
-        // 1. GitHub'daki tüm dosyaların listesini al
         const response = await fetch(`https://api.github.com/repos/${kullanici}/${repo}/contents/`);
         const dosyalar = await response.json();
-        
         let tumSarkilar = [];
 
-        // 2. Sadece JSON/TXT verilerini içerenleri seç ve oku
         for (let dosya of dosyalar) {
             if (dosya.name.includes("JSON") && dosya.name.endsWith(".txt")) {
                 const icerikRes = await fetch(dosya.download_url);
                 const veri = await icerikRes.json();
-                tumSarkilar = tumSarkilar.concat(veri.songs); // Şarkıları listeye ekle 
+                tumSarkilar = tumSarkilar.concat(veri.songs);
             }
         }
 
-        // 3. Tabloyu oluştur
-        $('#anaTablo').DataTable({
+        const tablo = $('#anaTablo').DataTable({
             data: tumSarkilar,
             columns: [
-                { data: "name" },          // 
-                { data: "genre" },         // 
-                { data: "musicQuality" },  // 
-                { data: "lyricsQuality" }, // 
-                { data: "price" }          // 
+                { data: "name", render: (data, type, row) => `<strong>${data}</strong>` },
+                { data: "genre" },
+                { 
+                    data: null, 
+                    render: (data) => `M:${data.musicQuality} | S:${data.lyricsQuality} | Ö:${data.originality}` 
+                },
+                { 
+                    data: "instruments",
+                    render: (data) => data.map(i => `<span class="instr-tag">${i}</span>`).join('')
+                },
+                { data: "price", render: (data) => `<strong>${data}M</strong>` },
+                { 
+                    data: "isHit",
+                    render: (data) => data ? '<span class="hit-badge">🔥 HIT</span>' : '<small>Normal</small>'
+                }
             ],
             language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json" }
         });
+
+        // --- FILTRELEME MANTIĞI ---
+
+        // 1. Türleri Seçeneklere Ekle
+        const turler = [...new Set(tumSarkilar.map(s => s.genre))];
+        turler.forEach(t => $('#genreFilter').append(`<option value="${t}">${t}</option>`));
+
+        // 2. Tür Filtresi Çalıştır
+        $('#genreFilter').on('change', function() {
+            tablo.column(1).search(this.value).draw();
+        });
+
+        // 3. HIT Filtresi (Checkbox)
+        $('#hitFilter').on('change', function() {
+            if (this.checked) {
+                tablo.column(5).search('HIT').draw();
+            } else {
+                tablo.column(5).search('').draw();
+            }
+        });
+
+        // 4. Enstrüman Filtresi (Anlık Yazarak)
+        $('#instrSearch').on('keyup', function() {
+            tablo.column(3).search(this.value).draw();
+        });
     }
-    verileriGetir();
+
+    verileriBaslat();
     </script>
 </body>
 </html>
