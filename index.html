@@ -598,54 +598,38 @@
             link.click();
             document.body.removeChild(link);
             
-            $('#syncLog').text(`💾 ${globalData.length} şarkı CSV olarak indirildi`).css("color", "lime");
+            $('#syncLog').text(` ${globalData.length} şarkı CSV olarak indirildi`).css("color", "lime");
         } catch (error) {
-            $('#syncLog').text("❌ CSV export hatası: " + error.message).css("color", "red");
+            $('#syncLog').text(" CSV export hatası: " + error.message).css("color", "red");
         }
     }
-    
-    // CSV Parse (pushToDB içinde kullanılacak) - Gelişmiş
+
+    // CSV Parser function
     function parseCSV(csvText) {
         const lines = csvText.trim().split('\n');
         if (lines.length < 2) return [];
         
-        let headers;
-        let delimiter = ',';
+        const headerLine = lines[0];
+        const headers = [];
+        let currentHeader = '';
+        let inQuotes = false;
         
-        // Delimiter tespit et (tab veya virgül)
-        if (lines[0].includes('\t')) {
-            delimiter = '\t';
-            headers = lines[0].split('\t').map(h => h.trim());
-            console.log('📋 Tab-separated headers detected:', headers);
-        } else if (lines[0].includes(',')) {
-            delimiter = ',';
-            // Virgül için tırnaklı alanları dikkate al
-            const headerLine = lines[0];
-            headers = [];
-            let currentHeader = '';
-            let inQuotes = false;
-            
-            for (let i = 0; i < headerLine.length; i++) {
-                const char = headerLine[i];
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    headers.push(currentHeader.trim());
-                    currentHeader = '';
-                } else {
-                    currentHeader += char;
-                }
+        // Parse headers
+        for (let i = 0; i < headerLine.length; i++) {
+            const char = headerLine[i];
+            if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                headers.push(currentHeader.trim());
+                currentHeader = '';
+            } else {
+                currentHeader += char;
             }
-            headers.push(currentHeader.trim());
-            console.log('📋 Comma-separated headers detected:', headers);
-        } else {
-            console.error('❌ No valid delimiter found in headers');
-            return [];
         }
+        headers.push(currentHeader.trim());
         
-        // Header mapping - esnek column isimleri
+        // Header mapping
         const headerMap = {
-            // Standard headers
             'id': 'id',
             'name': 'name', 
             'genre': 'genre',
@@ -656,7 +640,6 @@
             'writer': 'writer',
             'price': 'price',
             'isHit': 'isHit',
-            // Turkish headers
             'şarkı': 'name',
             'tür': 'genre',
             'müzik': 'musicQuality',
@@ -669,50 +652,37 @@
         
         const songs = [];
         
+        // Parse data rows
         for (let i = 1; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (line === '') continue;
+            const line = lines[i];
+            const values = [];
+            let currentValue = '';
+            let inQuotes = false;
             
-            let values;
-            if (delimiter === '\t') {
-                values = line.split('\t');
-            } else {
-                // CSV parse et (virgül içeren tırnaklı alanları destekler)
-                values = [];
-                let currentValue = '';
-                let inQuotes = false;
-                
-                for (let j = 0; j < line.length; j++) {
-                    const char = line[j];
-                    
-                    if (char === '"') {
-                        if (inQuotes && j + 1 < line.length && line[j + 1] === '"') {
-                            currentValue += '"';
-                            j++;
-                        } else {
-                            inQuotes = !inQuotes;
-                        }
-                    } else if (char === ',' && !inQuotes) {
-                        values.push(currentValue.trim());
-                        currentValue = '';
-                    } else {
-                        currentValue += char;
-                    }
+            for (let j = 0; j < line.length; j++) {
+                const char = line[j];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    values.push(currentValue.trim());
+                    currentValue = '';
+                } else {
+                    currentValue += char;
                 }
-                values.push(currentValue.trim());
             }
+            values.push(currentValue.trim());
             
             const song = {};
             headers.forEach((header, index) => {
+                const mappedHeader = headerMap[header.toLowerCase()] || header;
                 let value = values[index] || '';
-                const mappedHeader = headerMap[header] || header;
                 
-                // Tırnak işaretlerini kaldır
+                // Remove quotes if present
                 if (value.startsWith('"') && value.endsWith('"')) {
                     value = value.slice(1, -1).replace(/""/g, '"');
                 }
                 
-                // Fiyat temizliği (3M -> 3)
+                // Price cleanup (3M -> 3)
                 if (mappedHeader === 'price') {
                     value = value.replace(/[Mm]/g, '').trim();
                 }
@@ -733,7 +703,6 @@
                         song[mappedHeader] = value.toLowerCase() === 'true';
                         break;
                     case 'instruments':
-                        // Boşlukla ayrılmış enstrümanları ayır
                         song[mappedHeader] = value ? value.split(/[\s;]+/).filter(i => i.trim()) : [];
                         break;
                     default:
@@ -741,7 +710,7 @@
                 }
             });
             
-            // Gerekli alan kontrolü
+            // Required field validation
             if (song.id && song.name) {
                 songs.push(song);
             } else {
@@ -751,7 +720,7 @@
         
         return songs;
     }
-    
+
     // Clear Data
     function clearJson() {
         $('#rawJson').val('');
