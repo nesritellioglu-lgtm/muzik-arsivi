@@ -11,6 +11,14 @@
         [data-theme="light"] { --bg: #f0f2f5; --panel: #ffffff; --text: #1c1e21; --border: #ccd0d5; --primary: #4752c4; --success: #2e7d32; }
 
         body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        @media (max-width: 768px) {
+            body { flex-direction: column; height: auto; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); padding: 15px; }
+            .main-content { padding: 15px; }
+            .stat-group { grid-template-columns: 1fr 1fr 1fr 1fr; }
+            .server-selector { flex-wrap: wrap; }
+            #cardContainer { grid-template-columns: 1fr; }
+        }
         .sidebar { width: 300px; background: var(--panel); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .main-content { flex: 1; padding: 25px; overflow-y: auto; position: relative; }
 
@@ -72,7 +80,7 @@
         <div class="cart-box">
             <h4 style="margin:0;"><span data-key="cart_title">Selection</span> (<span id="cartCount">0</span>)</h4>
             <ul id="cartItems" style="padding:0; list-style:none; font-size:11px; margin:10px 0; max-height: 120px; overflow-y:auto;"></ul>
-            <button onclick="copyCart()" style="background:var(--success); color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; width:100%; font-weight:bold;">Kopyala / Copy</button>
+            <button onclick="purchaseCart()" style="background:var(--success); color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; width:100%; font-weight:bold;">Satın Al / Purchase</button>
         </div>
     </div>
 
@@ -101,6 +109,10 @@
     </div>
 
     <script>
+    const translations = {
+        tr: { cart_title: 'Seçimler', total: 'Toplam', hit: 'VURGU', all_genres: 'Tüm Türler', purchase: 'Satın Al', purchase_confirm: 'Siparişiniz panoya kopyalandı. Satıcıya mesaj atmak ister misiniz?', yes: 'Tamam', no: 'İptal' },
+        en: { cart_title: 'Selection', total: 'Total', hit: 'HIT', all_genres: 'All Genres', purchase: 'Purchase', purchase_confirm: 'Your order has been copied to clipboard. Would you like to message the seller?', yes: 'OK', no: 'Cancel' }
+    };
     const RAINBOW = [['#ff0000','#fff'],['#ff0036','#fff'],['#ff006c','#fff'],['#ff00a2','#fff'],['#ff00d8','#fff'],['#f000ff','#fff'],['#ba00ff','#fff'],['#8400ff','#fff'],['#4e00ff','#fff'],['#1900ff','#fff'],['#001dff','#fff'],['#0053ff','#fff'],['#0089ff','#fff'],['#00bfff','#fff'],['#00f5ff','#000'],['#00ffd3','#000'],['#00ff9d','#000'],['#00ff67','#000'],['#00ff31','#000'],['#05ff00','#000'],['#3bff00','#000'],['#71ff00','#000'],['#a7ff00','#000'],['#ddff00','#000'],['#ffeb00','#000'],['#ffb500','#000'],['#ff8000','#000']];
     let currentLang = 'en', globalData = [], selectedSongs = [], selectedInstr = [], activeServer = 73;
     const user = "nesritellioglu-lgtm", repo = "muzik-arsivi", charId = "780798";
@@ -108,7 +120,22 @@
     function getRainbow(v) { let idx = Math.min(Math.max(parseInt(v)||0,0),26); return `background:${RAINBOW[idx][0]}; color:${RAINBOW[idx][1]};`; }
     function setServer(s) { activeServer = s; $('.server-selector .server-btn').removeClass('active'); event.target.classList.add('active'); renderAll(); }
     function toggleTheme() { $('body').attr('data-theme', $('body').attr('data-theme')==='dark'?'light':'dark'); }
-    function toggleLang() { currentLang = currentLang==='en'?'tr':'en'; $('#langDisplay').text(currentLang.toUpperCase()); renderAll(); }
+    function toggleLang() { 
+        currentLang = currentLang==='en'?'tr':'en'; 
+        $('#langDisplay').text(currentLang.toUpperCase()); 
+        updateTranslations(); 
+        renderAll(); 
+    }
+    
+    function updateTranslations() {
+        const t = translations[currentLang];
+        $('[data-key]').each(function() {
+            const key = $(this).attr('data-key');
+            if (t[key]) $(this).text(t[key]);
+        });
+        $('#genreFilter').find('option:first').text(t.all_genres);
+        $('.cart-box button').text(t.purchase);
+    }
 
     async function init() {
         $('#ghToken').val(localStorage.getItem('gh_token') || '');
@@ -131,7 +158,7 @@
             $('#instrContainer').empty();
             allIns.forEach(i => $('#instrContainer').append(`<span class="instr-tag selectable" onclick="toggleInstr('${i}', this)">${i}</span>`));
             
-            $('#genreFilter').html('<option value="">All Genres</option>');
+            $('#genreFilter').html(`<option value="">${translations[currentLang].all_genres}</option>`);
             [...new Set(globalData.map(s=>s.genre))].sort().forEach(g => $('#genreFilter').append(`<option value="${g}">${g}</option>`));
 
             renderAll();
@@ -153,7 +180,7 @@
                 { data: "instruments", render: d => d.map(i=>`<span class="instr-tag">${i}</span>`).join('') },
                 { data: "price", render: d => `<b>${d}M</b>` },
                 { data: "writer" },
-                { data: "id", render: d => `<a href="https://${activeServer}.popmundo.com/World/Popmundo.aspx/Songs/Song/${d}" target="_blank" style="color:var(--primary); font-weight:bold;">${d}</a>` },
+                { data: "id", render: d => `<a href="https://${activeServer}.popmundo.com/World/Popmundo.aspx/Character/Song/${d}" target="_blank" style="color:var(--primary); font-weight:bold;">${d}</a>` },
                 { data: null, render: (d,t,r) => `<button onclick="addToCart('${r.id}')" style="background:var(--primary); color:white; border:none; border-radius:4px; padding:2px 6px; cursor:pointer;">+</button>` }
             ],
             order: [[8, "desc"]], pageLength: 15
@@ -200,7 +227,18 @@
             msg += `🔹 [songid=${s.id} name=${s.name}] ${s.genre} ${s.musicQuality} ${s.lyricsQuality} ${s.originality} (${currentLang==='tr'?'Yazar':'Writer'}: ${s.writer} | ${currentLang==='tr'?'Fiyat':'Price'}: ${s.price}M)\n`;
         });
         msg += `\nhttps://${activeServer}.popmundo.com/World/Popmundo.aspx/Conversations/Conversation/${charId}`;
-        navigator.clipboard.writeText(msg).then(() => alert("Copied!"));
+        navigator.clipboard.writeText(msg);
+        return msg;
+    }
+    
+    function purchaseCart() {
+        if (selectedSongs.length === 0) return;
+        const msg = copyCart();
+        const t = translations[currentLang];
+        
+        if (confirm(t.purchase_confirm)) {
+            window.open(`https://${activeServer}.popmundo.com/World/Popmundo.aspx/Conversations/Conversation/${charId}`, '_blank');
+        }
     }
 
     function toggleView(v) {
