@@ -134,7 +134,7 @@
 
     <script>
     const translations = {
-        tr: { cart_title: 'Seçimler', total: 'Toplam', hit: 'VURGU', all_genres: 'Tüm Türler', purchase: 'Satın Al', purchase_confirm: 'Siparişiniz panoya kopyalandı. Satıcıya mesaj atmak ister misiniz?', yes: 'Tamam', no: 'İptal', total_price: 'Toplam Ücret:', song: 'Şarkı', genre: 'Tür', music: 'Müzik', lyrics: 'Sözler', originality: 'Özgünlük', instruments: 'Enstrumanlar', price: 'Fiyat', writer: 'Yazar', id: 'ID', hit_only: 'Sadece Hit', min_quality: 'Min Kalite', search_placeholder: 'Şarkı, yazar veya tür ara...', reset: 'Sıfırla', table: 'Tablo', cards: 'Kartlar', add: 'Ekle', apply: 'Uygula', theme: 'Tema' },
+        tr: { cart_title: 'Seçimler', total: 'Toplam', hit: 'HIT', all_genres: 'Tüm Türler', purchase: 'Satın Al', purchase_confirm: 'Siparişiniz panoya kopyalandı. Satıcıya mesaj atmak ister misiniz?', yes: 'Tamam', no: 'İptal', total_price: 'Toplam Ücret:', song: 'Şarkı', genre: 'Tür', music: 'Müzik', lyrics: 'Sözler', originality: 'Özgünlük', instruments: 'Enstrumanlar', price: 'Fiyat', writer: 'Yazar', id: 'ID', hit_only: 'Sadece Hit', min_quality: 'Min Kalite', search_placeholder: 'Şarkı, yazar veya tür ara...', reset: 'Sıfırla', table: 'Tablo', cards: 'Kartlar', add: 'Ekle', apply: 'Uygula', theme: 'Tema' },
         en: { cart_title: 'Selection', total: 'Total', hit: 'HIT', all_genres: 'All Genres', purchase: 'Purchase', purchase_confirm: 'Your order has been copied to clipboard. Would you like to message seller?', yes: 'OK', no: 'Cancel', total_price: 'Total Price:', song: 'Song', genre: 'Genre', music: 'Music', lyrics: 'Lyrics', originality: 'Originality', instruments: 'Instr.', price: 'Price', writer: 'Writer', id: 'ID', hit_only: 'Hit Only', min_quality: 'Min Quality', search_placeholder: 'Search song, writer or genre...', reset: 'Reset', table: 'Table', cards: 'Cards', add: 'Add', apply: 'Apply', theme: 'Theme' }
     };
     const RAINBOW = [['#ff0000','#fff'],['#ff0036','#fff'],['#ff006c','#fff'],['#ff00a2','#fff'],['#ff00d8','#fff'],['#f000ff','#fff'],['#ba00ff','#fff'],['#8400ff','#fff'],['#4e00ff','#fff'],['#1900ff','#fff'],['#001dff','#fff'],['#0053ff','#fff'],['#0089ff','#fff'],['#00bfff','#fff'],['#00f5ff','#000'],['#00ffd3','#000'],['#00ff9d','#000'],['#00ff67','#000'],['#00ff31','#000'],['#05ff00','#000'],['#3bff00','#000'],['#71ff00','#000'],['#a7ff00','#000'],['#ddff00','#000'],['#ffeb00','#000'],['#ffb500','#000'],['#ff8000','#000']];
@@ -230,6 +230,12 @@
             );
         }
         
+        // Genre filtresi
+        const selectedGenre = $('#genreFilter').val();
+        if (selectedGenre) {
+            filteredData = filteredData.filter(s => s.genre === selectedGenre);
+        }
+        
         const t = translations[currentLang];
         $('#anaTablo').DataTable({
             data: filteredData,
@@ -251,7 +257,39 @@
 
     function renderCards() {
         const container = $('#cardContainer').empty();
-        globalData.forEach(s => {
+        
+        // Filtreleri uygula
+        let filteredData = globalData;
+        
+        // Hit only filtresi
+        if ($('#hitOnly').is(':checked')) {
+            filteredData = filteredData.filter(s => s.isHit);
+        }
+        
+        // Min kalite filtresi
+        const minMusic = parseInt($('#minMusic').val()) || 0;
+        const minLyrics = parseInt($('#minLyrics').val()) || 0;
+        
+        if (minMusic > 0) filteredData = filteredData.filter(s => s.musicQuality >= minMusic);
+        if (minLyrics > 0) filteredData = filteredData.filter(s => s.lyricsQuality >= minLyrics);
+        
+        // Search filtresi
+        const searchTerm = $('#searchInput').val().toLowerCase();
+        if (searchTerm) {
+            filteredData = filteredData.filter(s => 
+                s.name.toLowerCase().includes(searchTerm) ||
+                s.writer.toLowerCase().includes(searchTerm) ||
+                s.genre.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        // Genre filtresi
+        const selectedGenre = $('#genreFilter').val();
+        if (selectedGenre) {
+            filteredData = filteredData.filter(s => s.genre === selectedGenre);
+        }
+        
+        filteredData.forEach(s => {
             container.append(`<div class="song-card" data-id="${s.id}">
                 <div style="display:flex; justify-content:space-between; font-size:9px; color:#94a3b8;"><span>#${s.id}</span><span>${s.writer}</span></div>
                 <h4 style="margin:2px 0;">${s.name} ${s.isHit?'🔥':''}</h4>
