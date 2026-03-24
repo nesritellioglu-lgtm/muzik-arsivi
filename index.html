@@ -2,113 +2,146 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>🎵 SongMaster Pro Arşivi</title>
+    <title>🎵 SongMaster Arşivi</title>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f0f2f5; }
-        .filter-panel { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
-        .hit-badge { background: #ff4757; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
-        .instr-tag { background: #e1eafc; color: #2e5da7; padding: 2px 5px; border-radius: 3px; font-size: 11px; margin-right: 3px; border: 1px solid #bcd0f7; }
+        /* GECE MODU & GENEL STİL */
+        body { background-color: #0f111a; color: #e0e6ed; font-family: 'Inter', sans-serif; padding: 20px; }
+        .stats-panel { display: flex; gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: #1a1d2e; padding: 15px; border-radius: 12px; border-bottom: 3px solid #7289da; min-width: 120px; text-align: center; }
+        .stat-card h3 { font-size: 11px; color: #94a3b8; margin: 0; text-transform: uppercase; }
+        .stat-card p { font-size: 22px; font-weight: bold; margin: 5px 0 0; color: #7289da; }
+
+        .controls { background: #1a1d2e; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        button.view-btn { background: #7289da; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; }
+        
+        /* KART GÖRÜNÜMÜ STİLLERİ */
+        #cardContainer { display: none; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .song-card { background: #1a1d2e; border-radius: 12px; padding: 20px; border: 1px solid #2d334a; transition: 0.3s; position: relative; }
+        .song-card:hover { transform: translateY(-5px); border-color: #7289da; }
+        .song-card h4 { margin: 0 0 10px 0; color: #fff; font-size: 18px; }
+        .song-card .meta { font-size: 12px; color: #94a3b8; margin-bottom: 15px; }
+        .song-card .scores { display: flex; justify-content: space-between; background: #0f111a; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
+        .score-item { text-align: center; }
+        .score-val { display: block; font-weight: bold; color: #7289da; }
+        .score-lbl { font-size: 10px; color: #64748b; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; }
+        
+        /* TABLO GECE MODU */
+        table.dataTable { background: #1a1d2e !important; color: #e0e6ed !important; }
+        .dataTables_wrapper .dataTables_filter input { background: #0f111a; color: white; border: 1px solid #2d334a; border-radius: 6px; }
+        .hit-badge { background: #f87171; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; }
+        .instr-tag { background: #334155; color: #cbd5e1; padding: 2px 5px; border-radius: 4px; font-size: 10px; margin-right: 3px; }
     </style>
 </head>
 <body>
 
-    <div class="filter-panel">
-        <strong>Hızlı Filtrele:</strong>
-        <div>
-            <label>🎵 Tür:</label>
-            <select id="genreFilter"><option value="">Hepsi</option></select>
-        </div>
-        <div>
-            <input type="checkbox" id="hitFilter"> <label for="hitFilter" style="color:#ff4757; font-weight:bold;">🔥 Sadece HIT Şarkılar</label>
-        </div>
-        <div>
-            <label>🎻 Enstrüman:</label>
-            <input type="text" id="instrSearch" placeholder="Örn: Çello">
-        </div>
+    <div class="stats-panel">
+        <div class="stat-card"><h3>Arşiv</h3><p id="s-total">0</p></div>
+        <div class="stat-card"><h3>🔥 HIT</h3><p id="s-hit">0</p></div>
+        <div class="stat-card"><h3>Ort. Fiyat</h3><p id="s-price">0M</p></div>
     </div>
 
-    <table id="anaTablo" class="display" style="width:100%">
-        <thead>
-            <tr>
-                <th>Şarkı</th>
-                <th>Tür</th>
-                <th>Müzik/Söz/Özgünlük</th>
-                <th>Enstrümanlar</th>
-                <th>Fiyat (M)</th>
-                <th>Durum</th>
-            </tr>
-        </thead>
-    </table>
+    <div class="controls">
+        <button class="view-btn" onclick="toggleView('table')">📋 Tablo Görünümü</button>
+        <button class="view-btn" onclick="toggleView('cards')" style="background:#4752c4;">🎴 Kart Görünümü</button>
+        <select id="genreFilter" style="background:#0f111a; color:white; padding:7px; border-radius:6px; border:1px solid #2d334a;"><option value="">Tüm Türler</option></select>
+        <label><input type="checkbox" id="hitFilter"> Sadece HIT</label>
+    </div>
+
+    <div id="tableWrapper">
+        <table id="anaTablo" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th><th>Şarkı</th><th>Yazar</th><th>Tür</th><th>Müzik</th><th>Söz</th><th>Özgün</th><th>Fiyat</th><th>Durum</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+    <div id="cardContainer"></div>
 
     <script>
-    async function verileriBaslat() {
-        const kullanici = "nesritellioglu-lgtm"; // Kendi adınla değiştir!
-        const repo = "muzik-arsivi";
-        
-        const response = await fetch(`https://api.github.com/repos/${kullanici}/${repo}/contents/`);
-        const dosyalar = await response.json();
-        let tumSarkilar = [];
+    let globalData = [];
+    const kullanici = "nesritellioglu-lgtm"; 
+    const repo = "muzik-arsivi";
 
-        for (let dosya of dosyalar) {
-            if (dosya.name.includes("JSON") && dosya.name.endsWith(".txt")) {
-                const icerikRes = await fetch(dosya.download_url);
-                const veri = await icerikRes.json();
-                tumSarkilar = tumSarkilar.concat(veri.songs);
+    async function baslat() {
+        const res = await fetch(`https://api.github.com/repos/${kullanici}/${repo}/contents/`);
+        const dosyalar = await res.json();
+        
+        for (let f of dosyalar) {
+            if (f.name.includes("JSON") && (f.name.endsWith(".txt") || f.name.endsWith(".json"))) {
+                const c = await fetch(f.download_url);
+                const d = await c.json();
+                globalData = globalData.concat(d.songs);
             }
         }
 
-        const tablo = $('#anaTablo').DataTable({
-            data: tumSarkilar,
+        // İstatistikleri Güncelle 
+        $('#s-total').text(globalData.length);
+        $('#s-hit').text(globalData.filter(s => s.isHit).length);
+        const avg = (globalData.reduce((a, b) => a + b.price, 0) / globalData.length).toFixed(1);
+        $('#s-price').text(avg + "M");
+
+        // Türleri Doldur
+        [...new Set(globalData.map(s => s.genre))].forEach(t => $('#genreFilter').append(`<option value="${t}">${t}</option>`));
+
+        renderTable();
+        renderCards();
+    }
+
+    function renderTable() {
+        $('#anaTablo').DataTable({
+            data: globalData,
             columns: [
-                { data: "name", render: (data, type, row) => `<strong>${data}</strong>` },
-                { data: "genre" },
-                { 
-                    data: null, 
-                    render: (data) => `M:${data.musicQuality} | S:${data.lyricsQuality} | Ö:${data.originality}` 
-                },
-                { 
-                    data: "instruments",
-                    render: (data) => data.map(i => `<span class="instr-tag">${i}</span>`).join('')
-                },
-                { data: "price", render: (data) => `<strong>${data}M</strong>` },
-                { 
-                    data: "isHit",
-                    render: (data) => data ? '<span class="hit-badge">🔥 HIT</span>' : '<small>Normal</small>'
-                }
+                { data: "id" }, [cite: 5]
+                { data: "name", render: d => `<b>${d}</b>` }, [cite: 5]
+                { data: "writer" }, [cite: 5]
+                { data: "genre" }, [cite: 5]
+                { data: "musicQuality" }, [cite: 5]
+                { data: "lyricsQuality" }, [cite: 5]
+                { data: "originality" }, [cite: 6]
+                { data: "price", render: d => `${d}M` }, [cite: 5]
+                { data: "isHit", render: d => d ? '<span class="hit-badge">HIT</span>' : 'N' } [cite: 5, 6]
             ],
             language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json" }
         });
+    }
 
-        // --- FILTRELEME MANTIĞI ---
-
-        // 1. Türleri Seçeneklere Ekle
-        const turler = [...new Set(tumSarkilar.map(s => s.genre))];
-        turler.forEach(t => $('#genreFilter').append(`<option value="${t}">${t}</option>`));
-
-        // 2. Tür Filtresi Çalıştır
-        $('#genreFilter').on('change', function() {
-            tablo.column(1).search(this.value).draw();
-        });
-
-        // 3. HIT Filtresi (Checkbox)
-        $('#hitFilter').on('change', function() {
-            if (this.checked) {
-                tablo.column(5).search('HIT').draw();
-            } else {
-                tablo.column(5).search('').draw();
-            }
-        });
-
-        // 4. Enstrüman Filtresi (Anlık Yazarak)
-        $('#instrSearch').on('keyup', function() {
-            tablo.column(3).search(this.value).draw();
+    function renderCards() {
+        const container = $('#cardContainer');
+        container.empty();
+        globalData.forEach(s => {
+            const card = `
+                <div class="song-card" data-genre="${s.genre}" data-hit="${s.isHit}">
+                    ${s.isHit ? '<span class="hit-badge" style="position:absolute; top:15px; right:15px;">🔥 HIT</span>' : ''}
+                    <div class="meta">#${s.id} | ${s.writer}</div> [cite: 5]
+                    <h4>${s.name}</h4> [cite: 5]
+                    <div class="meta">🏷️ ${s.genre}</div> [cite: 5]
+                    <div class="scores">
+                        <div class="score-item"><span class="score-val">${s.musicQuality}</span><span class="score-lbl">MÜZİK</span></div> [cite: 5]
+                        <div class="score-item"><span class="score-val">${s.lyricsQuality}</span><span class="score-lbl">SÖZ</span></div> [cite: 5]
+                        <div class="score-item"><span class="score-val">${s.originality}</span><span class="score-lbl">ÖZGÜN</span></div> [cite: 6]
+                    </div>
+                    <div class="card-footer">
+                        <span style="font-weight:bold; color:#7289da; font-size:20px;">${s.price}M</span> [cite: 5]
+                        <div>${s.instruments.map(i => `<span class="instr-tag">${i}</span>`).join('')}</div> [cite: 5]
+                    </div>
+                </div>`;
+            container.append(card);
         });
     }
 
-    verileriBaslat();
+    function toggleView(v) {
+        if(v === 'table') { $('#tableWrapper').show(); $('#cardContainer').css('display', 'none'); }
+        else { $('#tableWrapper').hide(); $('#cardContainer').css('display', 'grid'); }
+    }
+
+    // Filtreleme işlemleri buraya eklenebilir...
+    baslat();
     </script>
 </body>
 </html>
