@@ -514,26 +514,42 @@
             }
 
             // Yeni şarkıları ekle
+            let addedCount = 0;
+            let skippedCount = 0;
+            let invalidCount = 0;
+            
             newData.forEach(s => { 
-                if(!currentContent.songs.find(ex => ex.id == s.id)) {
-                    // Gerekli alanları kontrol et
-                    if(!s.id || !s.name) {
-                        console.warn('Skipping invalid song:', s);
-                        return;
-                    }
-                    // Eksik alanları varsayılan değerlerle doldur
-                    if (!s.genre) s.genre = 'Unknown';
-                    if (!s.musicQuality) s.musicQuality = 21;
-                    if (!s.lyricsQuality) s.lyricsQuality = 21;
-                    if (!s.originality) s.originality = 21;
-                    if (!s.instruments) s.instruments = [];
-                    if (!s.writer) s.writer = 'Unknown';
-                    if (!s.price) s.price = 0;
-                    if (!s.isHit) s.isHit = false;
-                    
-                    currentContent.songs.push(s); 
+                const existing = currentContent.songs.find(ex => ex.id == s.id);
+                if(existing) {
+                    console.log(`⚠️ Skipping duplicate song ID ${s.id}: ${s.name}`);
+                    skippedCount++;
+                    return;
                 }
+                
+                // Gerekli alanları kontrol et
+                if(!s.id || !s.name) {
+                    console.warn('❌ Skipping invalid song:', s);
+                    invalidCount++;
+                    return;
+                }
+                
+                // Eksik alanları varsayılan değerlerle doldur
+                if (!s.genre) s.genre = 'Unknown';
+                if (!s.musicQuality) s.musicQuality = 21;
+                if (!s.lyricsQuality) s.lyricsQuality = 21;
+                if (!s.originality) s.originality = 21;
+                if (!s.instruments) s.instruments = [];
+                if (!s.writer) s.writer = 'Unknown';
+                if (!s.price) s.price = 0;
+                if (!s.isHit) s.isHit = false;
+                
+                currentContent.songs.push(s); 
+                addedCount++;
+                console.log(`✅ Added song ID ${s.id}: ${s.name}`);
             });
+
+            console.log(`📊 Summary: ${addedCount} added, ${skippedCount} skipped (duplicate), ${invalidCount} invalid`);
+            $('#syncLog').text(`📊 ${addedCount} eklendi, ${skippedCount} atlandı (tekrar eden), ${invalidCount} geçersiz`).css("color", "lime");
 
             // GitHub'a gönder
             const content = btoa(JSON.stringify(currentContent, null, 2));
@@ -654,8 +670,31 @@
         if (lines[0].includes('\t')) {
             delimiter = '\t';
             headers = lines[0].split('\t').map(h => h.trim());
+            console.log('📋 Tab-separated headers detected:', headers);
+        } else if (lines[0].includes(',')) {
+            delimiter = ',';
+            // Virgül için tırnaklı alanları dikkate al
+            const headerLine = lines[0];
+            headers = [];
+            let currentHeader = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < headerLine.length; i++) {
+                const char = headerLine[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    headers.push(currentHeader.trim());
+                    currentHeader = '';
+                } else {
+                    currentHeader += char;
+                }
+            }
+            headers.push(currentHeader.trim());
+            console.log('📋 Comma-separated headers detected:', headers);
         } else {
-            headers = lines[0].split(',').map(h => h.trim().replace(/^"(.*)"$/, '$1'));
+            console.error('❌ No valid delimiter found in headers');
+            return [];
         }
         
         // Header mapping - esnek column isimleri
