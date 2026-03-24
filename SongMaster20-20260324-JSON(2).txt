@@ -40,22 +40,6 @@
       "averageScore": 22
     },
     {
-      "id": "12066581",
-      "name": "hm 142",
-      "genre": "Heavy Metal",
-      "musicQuality": 0,
-      "lyricsQuality": 0,
-      "originality": 0,
-      "instruments": [
-        "Bütün şarkıların orijinal bestesi için baskın enstrümanlara ihtiyacı var. Genel olarak en iyi şekilde çalmanın yolu grubun ilk enstrümanlarının şarkının baskın enstrümanlarıyla uyuşmasıdır. Bu yüzden şarkının baskın enstrümanlarını çalacak kişilerin ihtiyaçlarına uyacak şekilde seçin. Bir şarkı en fazla 5 baskın enstrümana sahip olabilir."
-      ],
-      "writer": "Gülşah Tellioğlu",
-      "isHit": false,
-      "price": 0,
-      "category": "SATILABİLİR",
-      "parseTime": 156
-    },
-    {
       "id": "12042948",
       "name": "hm 141",
       "genre": "Heavy Metal",
