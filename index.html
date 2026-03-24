@@ -642,74 +642,125 @@
         }
     }
     
-    // CSV Parse (pushToDB içinde kullanılacak)
+    // CSV Parse (pushToDB içinde kullanılacak) - Gelişmiş
     function parseCSV(csvText) {
         const lines = csvText.trim().split('\n');
         if (lines.length < 2) return [];
         
-        const headers = lines[0].split(',').map(h => h.trim().replace(/^"(.*)"$/, '$1'));
+        let headers;
+        let delimiter = ',';
+        
+        // Delimiter tespit et (tab veya virgül)
+        if (lines[0].includes('\t')) {
+            delimiter = '\t';
+            headers = lines[0].split('\t').map(h => h.trim());
+        } else {
+            headers = lines[0].split(',').map(h => h.trim().replace(/^"(.*)"$/, '$1'));
+        }
+        
+        // Header mapping - esnek column isimleri
+        const headerMap = {
+            // Standard headers
+            'id': 'id',
+            'name': 'name', 
+            'genre': 'genre',
+            'musicQuality': 'musicQuality',
+            'lyricsQuality': 'lyricsQuality',
+            'originality': 'originality',
+            'instruments': 'instruments',
+            'writer': 'writer',
+            'price': 'price',
+            'isHit': 'isHit',
+            // Turkish headers
+            'şarkı': 'name',
+            'tür': 'genre',
+            'müzik': 'musicQuality',
+            'sözler': 'lyricsQuality',
+            'özgünlük': 'originality',
+            'enstrümanlar': 'instruments',
+            'yazar': 'writer',
+            'fiyat': 'price'
+        };
+        
         const songs = [];
         
         for (let i = 1; i < lines.length; i++) {
             const line = lines[i].trim();
             if (line === '') continue;
             
-            const values = [];
-            let currentValue = '';
-            let inQuotes = false;
-            
-            for (let j = 0; j < line.length; j++) {
-                const char = line[j];
+            let values;
+            if (delimiter === '\t') {
+                values = line.split('\t');
+            } else {
+                // CSV parse et (virgül içeren tırnaklı alanları destekler)
+                values = [];
+                let currentValue = '';
+                let inQuotes = false;
                 
-                if (char === '"') {
-                    if (inQuotes && j + 1 < line.length && line[j + 1] === '"') {
-                        currentValue += '"';
-                        j++;
+                for (let j = 0; j < line.length; j++) {
+                    const char = line[j];
+                    
+                    if (char === '"') {
+                        if (inQuotes && j + 1 < line.length && line[j + 1] === '"') {
+                            currentValue += '"';
+                            j++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(currentValue.trim());
+                        currentValue = '';
                     } else {
-                        inQuotes = !inQuotes;
+                        currentValue += char;
                     }
-                } else if (char === ',' && !inQuotes) {
-                    values.push(currentValue.trim());
-                    currentValue = '';
-                } else {
-                    currentValue += char;
                 }
+                values.push(currentValue.trim());
             }
-            values.push(currentValue.trim());
             
             const song = {};
             headers.forEach((header, index) => {
                 let value = values[index] || '';
+                const mappedHeader = headerMap[header] || header;
                 
+                // Tırnak işaretlerini kaldır
                 if (value.startsWith('"') && value.endsWith('"')) {
                     value = value.slice(1, -1).replace(/""/g, '"');
                 }
                 
-                switch (header) {
+                // Fiyat temizliği (3M -> 3)
+                if (mappedHeader === 'price') {
+                    value = value.replace(/[Mm]/g, '').trim();
+                }
+                
+                switch (mappedHeader) {
                     case 'id':
-                        song[header] = parseInt(value) || 0;
+                        song[mappedHeader] = parseInt(value) || 0;
                         break;
                     case 'musicQuality':
                     case 'lyricsQuality':
                     case 'originality':
-                        song[header] = parseInt(value) || 21;
+                        song[mappedHeader] = parseInt(value) || 21;
                         break;
                     case 'price':
-                        song[header] = parseInt(value) || 0;
+                        song[mappedHeader] = parseInt(value) || 0;
                         break;
                     case 'isHit':
-                        song[header] = value.toLowerCase() === 'true';
+                        song[mappedHeader] = value.toLowerCase() === 'true';
                         break;
                     case 'instruments':
-                        song[header] = value ? value.split(';').filter(i => i.trim()) : [];
+                        // Boşlukla ayrılmış enstrümanları ayır
+                        song[mappedHeader] = value ? value.split(/[\s;]+/).filter(i => i.trim()) : [];
                         break;
                     default:
-                        song[header] = value;
+                        song[mappedHeader] = value;
                 }
             });
             
+            // Gerekli alan kontrolü
             if (song.id && song.name) {
                 songs.push(song);
+            } else {
+                console.warn(`Skipping invalid song at line ${i + 1}:`, song);
             }
         }
         
