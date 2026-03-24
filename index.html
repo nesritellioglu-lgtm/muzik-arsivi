@@ -54,15 +54,10 @@
         </div>
         
         <div style="display:flex; gap:5px;">
-            <button class="server-btn" style="border:1px solid var(--border);" onclick="setLang('tr')" id="langTR">�🇷 TR</button>
-            <button class="server-btn" style="border:1px solid var(--border);" onclick="setLang('en')" id="langEN">�� EN</button>
-            <div style="position:relative;">
-                <button class="server-btn" style="border:1px solid var(--border);" onclick="$('#themeDropdown').toggle()" data-key="theme">🌓 Tema</button>
-                <div id="themeDropdown" style="display:none; position:absolute; top:100%; left:0; background:var(--panel); border:1px solid var(--border); border-radius:6px; margin-top:2px; z-index:1000;">
-                    <button onclick="setTheme('light')" style="display:block; width:100%; padding:6px 12px; border:none; background:none; color:var(--text); cursor:pointer; text-align:left; font-size:11px;">☀️ Light</button>
-                    <button onclick="setTheme('dark')" style="display:block; width:100%; padding:6px 12px; border:none; background:none; color:var(--text); cursor:pointer; text-align:left; font-size:11px;">� Dark</button>
-                </div>
-            </div>
+            <button class="server-btn active" style="border:1px solid var(--border);" onclick="setLang('tr')" id="langTR">��🇷 TR</button>
+            <button class="server-btn" style="border:1px solid var(--border);" onclick="setLang('en')" id="langEN">🇺🇸 EN</button>
+            <button class="server-btn" style="border:1px solid var(--border);" onclick="setTheme('light')" id="btnLight">☀️ Light</button>
+            <button class="server-btn" style="border:1px solid var(--border);" onclick="setTheme('dark')" id="btnDark">🌙 Dark</button>
         </div>
 
         <div>
@@ -75,8 +70,8 @@
         </div>
 
         <div class="stat-group">
-            <div class="stat-card"><h3 style="font-size:9px; margin:0;">Toplam</h3><p id="s-total" style="margin:4px 0; font-weight:bold;">0</p></div>
-            <div class="stat-card"><h3 style="font-size:9px; margin:0;" data-key="hit">VURGU</h3><p id="s-hit" style="margin:4px 0; font-weight:bold;">0</p></div>
+            <div class="stat-card"><h3 style="font-size:9px; margin:0;" data-key="total">Toplam</h3><p id="s-total" style="margin:4px 0; font-weight:bold;">0</p></div>
+            <div class="stat-card"><h3 style="font-size:9px; margin:0;" data-key="hit">HIT</h3><p id="s-hit" style="margin:4px 0; font-weight:bold;">0</p></div>
         </div>
 
         <div style="background:var(--bg); padding:10px; border-radius:10px; border:1px solid var(--border);">
@@ -86,7 +81,7 @@
             <div style="display:flex; gap:4px; margin-top:8px;">
                 <label style="display:flex; align-items:center; gap:4px; font-size:10px; cursor:pointer;">
                     <input type="checkbox" id="hitOnly" style="cursor:pointer;">
-                    <span data-key="hit_only">Sadece Hit</span>
+                    <span data-key="hit_only">Sadece HIT</span>
                 </label>
             </div>
             
@@ -140,7 +135,7 @@
 
     <script>
     const translations = {
-        tr: { cart_title: 'Seçimler', total: 'Toplam', hit: 'HIT', all_genres: 'Tüm Türler', purchase: 'Satın Al', purchase_confirm: 'Siparişiniz panoya kopyalandı. Satıcıya mesaj atmak ister misiniz?', yes: 'Tamam', no: 'İptal', total_price: 'Toplam Ücret:', song: 'Şarkı', genre: 'Tür', music: 'Müzik', lyrics: 'Sözler', originality: 'Özgünlük', instruments: 'Enstrumanlar', price: 'Fiyat', writer: 'Yazar', id: 'ID', hit_only: 'Sadece Hit', min_quality: 'Min Kalite', search_placeholder: 'Şarkı, yazar veya tür ara...', reset: 'Sıfırla', table: 'Tablo', cards: 'Kartlar', add: 'Ekle', apply: 'Uygula', theme: 'Tema' },
+        tr: { cart_title: 'Seçimler', total: 'Toplam', hit: 'HIT', all_genres: 'Tüm Türler', purchase: 'Satın Al', purchase_confirm: 'Siparişiniz panoya kopyalandı. Satıcıya mesaj atmak ister misiniz?', yes: 'Tamam', no: 'İptal', total_price: 'Toplam Ücret:', song: 'Şarkı', genre: 'Tür', music: 'Müzik', lyrics: 'Sözler', originality: 'Özgünlük', instruments: 'Enstrumanlar', price: 'Fiyat', writer: 'Yazar', id: 'ID', hit_only: 'Sadece HIT', min_quality: 'Min Kalite', search_placeholder: 'Şarkı, yazar veya tür ara...', reset: 'Sıfırla', table: 'Tablo', cards: 'Kartlar', add: 'Ekle', apply: 'Uygula', theme: 'Tema' },
         en: { cart_title: 'Selection', total: 'Total', hit: 'HIT', all_genres: 'All Genres', purchase: 'Purchase', purchase_confirm: 'Your order has been copied to clipboard. Would you like to message seller?', yes: 'OK', no: 'Cancel', total_price: 'Total Price:', song: 'Song', genre: 'Genre', music: 'Music', lyrics: 'Lyrics', originality: 'Originality', instruments: 'Instr.', price: 'Price', writer: 'Writer', id: 'ID', hit_only: 'Hit Only', min_quality: 'Min Quality', search_placeholder: 'Search song, writer or genre...', reset: 'Reset', table: 'Table', cards: 'Cards', add: 'Add', apply: 'Apply', theme: 'Theme' }
     };
     const RAINBOW = [['#ff0000','#fff'],['#ff0036','#fff'],['#ff006c','#fff'],['#ff00a2','#fff'],['#ff00d8','#fff'],['#f000ff','#fff'],['#ba00ff','#fff'],['#8400ff','#fff'],['#4e00ff','#fff'],['#1900ff','#fff'],['#001dff','#fff'],['#0053ff','#fff'],['#0089ff','#fff'],['#00bfff','#fff'],['#00f5ff','#000'],['#00ffd3','#000'],['#00ff9d','#000'],['#00ff67','#000'],['#00ff31','#000'],['#05ff00','#000'],['#3bff00','#000'],['#71ff00','#000'],['#a7ff00','#000'],['#ddff00','#000'],['#ffeb00','#000'],['#ffb500','#000'],['#ff8000','#000']];
@@ -151,7 +146,16 @@
     function setServer(s) { activeServer = s; $('.server-selector .server-btn').removeClass('active'); event.target.classList.add('active'); renderAll(); }
     function setTheme(theme) { 
         $('body').attr('data-theme', theme);
-        $('#themeDropdown').hide();
+        
+        // Buton active durumlarını güncelle
+        $('#btnLight').removeClass('active');
+        $('#btnDark').removeClass('active');
+        
+        if (theme === 'light') {
+            $('#btnLight').addClass('active');
+        } else {
+            $('#btnDark').addClass('active');
+        }
     }
     function toggleTheme() { $('body').attr('data-theme', $('body').attr('data-theme')==='dark'?'light':'dark'); }
     function setLang(lang) { 
@@ -170,6 +174,13 @@
         updateTranslations(); 
         renderAll(); 
     }
+    
+    // Varsayılan ayarları uygula
+    $(document).ready(function() {
+        setLang('tr');
+        setTheme('light');
+        updateTranslations();
+    });
     
     function updateTranslations() {
         const t = translations[currentLang];
