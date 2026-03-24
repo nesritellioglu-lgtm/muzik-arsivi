@@ -2,168 +2,105 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SongMaster Market</title>
+    <title>SongMaster Database Manager</title>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <style>
-        :root {
-            --bg: #0d0e14; --panel: #161927; --text: #e0e6ed; --border: #2d334a; --primary: #7289da; --success: #43b581;
-        }
-        [data-theme="light"] {
-            --bg: #f0f2f5; --panel: #ffffff; --text: #1c1e21; --border: #ccd0d5; --primary: #4752c4; --success: #2e7d32;
-        }
+        :root { --bg: #0d0e14; --panel: #161927; --text: #e0e6ed; --border: #2d334a; --primary: #7289da; --success: #43b581; --danger: #f04747; }
+        [data-theme="light"] { --bg: #f2f3f5; --panel: #ffffff; --text: #2e3338; --border: #e3e5e8; --primary: #5865f2; --success: #3ba55c; }
 
-        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; transition: 0.3s; }
-        
-        .sidebar { width: 320px; background: var(--panel); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
-        .main-content { flex: 1; padding: 25px; overflow-y: auto; position: relative; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 300px; background: var(--panel); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; }
 
-        .settings-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn-setting { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px; }
-
-        .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .stat-card { background: var(--bg); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
-        .stat-card h3 { font-size: 10px; text-transform: uppercase; margin: 0; color: #94a3b8; }
-        .stat-card p { font-size: 18px; font-weight: bold; margin: 5px 0 0; color: var(--primary); }
-
-        .filter-box { background: var(--bg); padding: 15px; border-radius: 10px; border: 1px solid var(--border); }
-        .filter-label { font-size: 12px; font-weight: bold; margin-bottom: 8px; display: block; color: #94a3b8; }
-        select { width: 100%; background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 6px; }
+        .server-selector { display: flex; gap: 4px; background: var(--bg); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
+        .server-btn { flex: 1; padding: 6px; border: none; border-radius: 6px; background: none; color: var(--text); cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.2s; }
+        .server-btn.active { background: var(--primary); color: white; }
 
         .cart-box { background: var(--primary); color: white; padding: 15px; border-radius: 12px; margin-top: auto; }
-        #cartItems { list-style: none; padding: 0; margin: 10px 0; font-size: 11px; max-height: 120px; overflow-y: auto; }
-        .cart-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.2); }
         .btn-copy { background: var(--success); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; }
 
-        .view-switcher { margin-bottom: 20px; display: flex; gap: 10px; }
-        .btn-view { padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; font-weight: bold; }
-        .btn-view.active { background: var(--primary); color: white; border-color: var(--primary); }
+        /* DATABASE SYNC PANEL */
+        .db-sync-area { background: var(--panel); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        textarea#rawJsonInput { width: 100%; height: 120px; background: #000; color: #0f0; border: 1px solid var(--border); border-radius: 6px; font-family: monospace; padding: 10px; box-sizing: border-box; }
+        .token-input { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 6px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
 
-        .score-box { display: inline-block; width: 26px; height: 26px; line-height: 26px; text-align: center; border-radius: 4px; font-weight: bold; font-size: 12px; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
-        
-        table.dataTable { background: var(--panel) !important; color: var(--text) !important; font-size: 13px; border-radius: 10px; }
-        
-        #cardContainer { display: none; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .song-card { background: var(--panel); border-radius: 12px; padding: 15px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
-        .instr-tag { background: var(--bg); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid var(--border); display: inline-block; margin: 2px; cursor: pointer; }
-        .instr-tag.selected { background: var(--primary); color: white; }
+        .score-box { display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 4px; font-weight: bold; font-size: 11px; color: #fff; text-shadow: 1px 1px 1px #000; }
+        table.dataTable { background: var(--panel) !important; color: var(--text) !important; font-size: 12px; }
+        .song-link { color: var(--primary); text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body data-theme="dark">
 
     <div class="sidebar">
-        <h2 style="margin:0; font-size: 22px;">🎵 SongMaster</h2>
+        <h2 style="margin:0;">🎵 SongMaster</h2>
         
-        <div class="settings-group">
-            <button class="btn-setting" onclick="toggleTheme()">🌓 Theme</button>
-            <button class="btn-setting" onclick="toggleLang()">🌍 <span id="langDisplay">EN</span></button>
+        <div style="display:flex; gap:5px;">
+            <button class="server-btn" style="background:var(--bg); border:1px solid var(--border);" onclick="toggleTheme()">🌓 Theme</button>
+            <button class="server-btn" style="background:var(--bg); border:1px solid var(--border);" onclick="toggleLang()">🌍 <span id="langDisplay">EN</span></button>
         </div>
 
-        <div class="stat-group">
-            <div class="stat-card"><h3 data-key="stat_total">Archive</h3><p id="s-total">0</p></div>
-            <div class="stat-card"><h3>🔥 HIT</h3><p id="s-hit">0</p></div>
-        </div>
-
-        <div class="filter-box">
-            <span class="filter-label" data-key="th_genre">Genre</span>
-            <select id="genreFilter"><option value="" data-key="opt_all_genres">All Genres</option></select>
-            
-            <span class="filter-label" style="margin-top:15px;" data-key="th_instr">Instruments</span>
-            <div id="instrContainer"></div>
-
-            <label style="display:flex; align-items:center; gap:8px; margin-top:15px; font-size: 13px; cursor:pointer;">
-                <input type="checkbox" id="hitFilter"> <span data-key="chk_hit">Only HIT</span>
-            </label>
+        <div>
+            <span style="font-size:10px; color:#94a3b8; font-weight:bold;">POP-SERVER</span>
+            <div class="server-selector">
+                <button class="server-btn active" onclick="setServer(73)">73</button>
+                <button class="server-btn" onclick="setServer(74)">74</button>
+                <button class="server-btn" onclick="setServer(75)">75</button>
+            </div>
         </div>
 
         <div class="cart-box">
             <h4 style="margin:0;"><span data-key="cart_title">Selection</span> (<span id="cartCount">0</span>)</h4>
-            <ul id="cartItems"></ul>
-            <button class="btn-copy" onclick="copyCart()" data-key="btn_copy">Copy Selection</button>
+            <ul id="cartItems" style="padding:0; list-style:none; font-size:11px; margin:10px 0; max-height: 150px; overflow-y: auto;"></ul>
+            <button class="btn-copy" onclick="copyCart()" data-key="btn_copy">Copy for Game</button>
         </div>
     </div>
 
     <div class="main-content">
-        <div class="view-switcher">
-            <button id="btnTable" class="btn-view active" onclick="toggleView('table')" data-key="btn_table">📋 Table</button>
-            <button id="btnCards" class="btn-view" onclick="toggleView('cards')" data-key="btn_cards">🎴 Cards</button>
+        <div class="db-sync-area">
+            <h3 style="margin:0 0 15px 0; color:var(--success);">🗄️ Database Quick-Sync</h3>
+            <input type="password" id="ghToken" class="token-input" placeholder="GitHub Personal Access Token (Required for Auto-Push)" onchange="saveToken()">
+            <textarea id="rawJsonInput" placeholder="Paste your parsed JSON here (Single song object or Array)"></textarea>
+            <div style="margin-top:10px; display:flex; gap:10px;">
+                <button onclick="pushToDatabase()" style="flex:1; padding:10px; background:var(--success); border:none; color:white; border-radius:6px; font-weight:bold; cursor:pointer;">Push to GitHub Database</button>
+                <button onclick="localStorage.removeItem('gh_token'); $('#ghToken').val('');" style="background:var(--danger); border:none; color:white; padding:10px; border-radius:6px; cursor:pointer;">Clear Token</button>
+            </div>
+            <div id="syncStatus" style="margin-top:10px; font-size:12px; font-weight:bold;"></div>
         </div>
 
-        <div id="tableWrapper">
-            <table id="anaTablo" class="display" style="width:100%">
-                <thead>
-                    <tr>
-                        <th data-key="th_song">Song</th><th data-key="th_genre">Genre</th><th data-key="th_music">Music</th>
-                        <th data-key="th_lyrics">Lyrics</th><th data-key="th_orig">Orig.</th><th data-key="th_instr">Instr.</th>
-                        <th data-key="th_price">Price</th><th data-key="th_status">Status</th><th data-key="th_writer">Writer</th>
-                        <th>ID</th><th>🛒</th>
-                    </tr>
-                </thead>
-            </table>
-        </div>
-        <div id="cardContainer"></div>
+        <table id="anaTablo" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Song</th><th>Genre</th><th>M</th><th>L</th><th>O</th><th>Instr.</th><th>Price</th><th>Writer</th><th>ID</th><th>🛒</th>
+                </tr>
+            </thead>
+        </table>
     </div>
 
     <script>
     const RAINBOW = [['#ff0000','#fff'],['#ff0036','#fff'],['#ff006c','#fff'],['#ff00a2','#fff'],['#ff00d8','#fff'],['#f000ff','#fff'],['#ba00ff','#fff'],['#8400ff','#fff'],['#4e00ff','#fff'],['#1900ff','#fff'],['#001dff','#fff'],['#0053ff','#fff'],['#0089ff','#fff'],['#00bfff','#fff'],['#00f5ff','#000'],['#00ffd3','#000'],['#00ff9d','#000'],['#00ff67','#000'],['#00ff31','#000'],['#05ff00','#000'],['#3bff00','#000'],['#71ff00','#000'],['#a7ff00','#000'],['#ddff00','#000'],['#ffeb00','#000'],['#ffb500','#000'],['#ff8000','#000']];
+    let currentLang = 'en', globalData = [], selectedSongs = [], activeServer = 73;
+    const user = "nesritellioglu-lgtm", repo = "muzik-arsivi", fileName = "muzikler.json", charId = "780798";
 
     const LANGS = {
-        tr: {
-            stat_total: "Toplam Arşiv", cart_title: "Seçilenler", btn_copy: "Verileri Kopyala",
-            btn_table: "📋 Tablo", btn_cards: "🎴 Kartlar", opt_all_genres: "Tüm Türler", chk_hit: "Sadece HIT",
-            th_song: "Şarkı", th_genre: "Tür", th_music: "Müzik", th_lyrics: "Sözler", th_orig: "Özgün",
-            th_instr: "Enstrümanlar", th_price: "Fiyat", th_status: "Durum", th_writer: "Yazar",
-            msg_head: "İlgilendiğim şarkılar", msg_writer: "Yazar", msg_price: "Fiyat", msg_copied: "Kopyalandı!", cart_empty: "Sepet boş!"
-        },
-        en: {
-            stat_total: "Total Archive", cart_title: "My Selection", btn_copy: "Copy Selection",
-            btn_table: "📋 Table", btn_cards: "🎴 Cards", opt_all_genres: "All Genres", chk_hit: "Only HIT",
-            th_song: "Song", th_genre: "Genre", th_music: "Music", th_lyrics: "Lyrics", th_orig: "Orig.",
-            th_instr: "Instruments", th_price: "Price", th_status: "Status", th_writer: "Writer",
-            msg_head: "Songs I'm interested in", msg_writer: "Writer", msg_price: "Price", msg_copied: "Copied!", cart_empty: "Cart is empty!"
-        }
+        tr: { cart_title: "Seçilenler", btn_copy: "Kopyala", msg_head: "İlgilendiğim şarkılar", msg_writer: "Yazar", msg_price: "Fiyat", msg_order: "Sipariş için mesaj atın:" },
+        en: { cart_title: "My Selection", btn_copy: "Copy Selection", msg_head: "Songs I'm interested in", msg_writer: "Writer", msg_price: "Price", msg_order: "Send a message for order:" }
     };
 
-    let currentLang = 'en', globalData = [], selectedSongs = [], selectedInstr = [];
-    const userRepo = "nesritellioglu-lgtm";
-
-    function getRainbow(val) {
-        let v = parseInt(val), idx = isNaN(v) ? 0 : Math.min(Math.max(v, 0), RAINBOW.length - 1);
-        return `background:${RAINBOW[idx][0]}; color:${RAINBOW[idx][1]};`;
-    }
-
-    // TEMA VE DİL FONKSİYONLARI
+    function getRainbow(v) { let idx = Math.min(Math.max(parseInt(v) || 0, 0), 26); return `background:${RAINBOW[idx][0]}; color:${RAINBOW[idx][1]};`; }
+    function setServer(s) { activeServer = s; $('.server-btn').removeClass('active'); event.target.classList.add('active'); renderTable(); }
     function toggleTheme() { $('body').attr('data-theme', $('body').attr('data-theme') === 'dark' ? 'light' : 'dark'); }
-    function toggleLang() { currentLang = currentLang === 'en' ? 'tr' : 'en'; $('#langDisplay').text(currentLang.toUpperCase()); updateUI(); }
-
-    function updateUI() {
-        $('[data-key]').each(function() { $(this).text(LANGS[currentLang][$(this).data('key')]); });
-        renderTable(); renderCards();
-    }
+    function toggleLang() { currentLang = currentLang === 'en' ? 'tr' : 'en'; $('#langDisplay').text(currentLang.toUpperCase()); renderTable(); }
+    function saveToken() { localStorage.setItem('gh_token', $('#ghToken').val()); }
 
     async function init() {
-        try {
-            const res = await fetch(`https://api.github.com/repos/${userRepo}/muzik-arsivi/contents/?t=${Date.now()}`);
-            const files = await res.json();
-            for (let f of files) {
-                if (f.name.toUpperCase().includes("JSON") && (f.name.endsWith(".txt") || f.name.endsWith(".json"))) {
-                    const c = await fetch(f.download_url);
-                    const d = await c.json();
-                    if (d.songs) globalData = globalData.concat(d.songs);
-                }
-            }
-            
-            // Filtreleri bir kez hazırla
-            let allIns = [...new Set(globalData.flatMap(s => s.instruments))].sort();
-            allIns.forEach(i => $('#instrContainer').append(`<span class="instr-tag" onclick="toggleInstr('${i}', this)">${i}</span>`));
-            [...new Set(globalData.map(s => s.genre))].sort().forEach(g => $('#genreFilter').append(`<option value="${g}">${g}</option>`));
-            
-            $('#s-total').text(globalData.length);
-            $('#s-hit').text(globalData.filter(s => s.isHit).length);
-
-            updateUI(); // Her şeyi çiz
-        } catch (e) { console.error("Veri yükleme hatası:", e); }
+        $('#ghToken').val(localStorage.getItem('gh_token') || '');
+        const res = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/${fileName}?t=${Date.now()}`);
+        const data = await res.json();
+        const content = JSON.parse(atob(data.content));
+        globalData = content.songs || [];
+        renderTable();
     }
 
     function renderTable() {
@@ -176,46 +113,14 @@
                 { data: "musicQuality", render: d => `<span class="score-box" style="${getRainbow(d)}">${d}</span>` },
                 { data: "lyricsQuality", render: d => `<span class="score-box" style="${getRainbow(d)}">${d}</span>` },
                 { data: "originality", render: d => `<span class="score-box" style="${getRainbow(d)}">${d}</span>` },
-                { data: "instruments", render: d => d.map(i => `<small class="instr-tag" style="cursor:default">${i}</small>`).join('') },
-                { data: "price", render: d => `<b style="color:var(--primary)">${d}M</b>` },
-                { data: "isHit", render: d => d ? '<span class="hit-badge">HIT</span>' : 'N' },
-                { data: "writer" }, { data: "id" },
-                { data: null, orderable: false, render: (d, t, r) => `<button onclick="addToCart('${r.id}')" style="cursor:pointer; background:var(--primary); border:none; color:white; border-radius:4px; padding:4px 8px;">+</button>` }
+                { data: "instruments", render: d => d.map(i => `<small style="font-size:9px; border:1px solid var(--border); padding:1px 3px; margin:1px; border-radius:3px;">${i}</small>`).join('') },
+                { data: "price", render: d => `<b>${d}M</b>` },
+                { data: "writer" },
+                { data: "id", render: d => `<a href="https://${activeServer}.popmundo.com/World/Popmundo.aspx/Songs/Song/${d}" target="_blank" class="song-link">${d}</a>` },
+                { data: null, orderable: false, render: (d,t,r) => `<button onclick="addToCart('${r.id}')" style="background:var(--primary); color:white; border:none; border-radius:4px; cursor:pointer; padding:2px 6px;">+</button>` }
             ],
-            language: { url: currentLang === 'tr' ? "//cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json" : "" },
-            order: [[9, "desc"]],
-            pageLength: 15
+            order: [[8, "desc"]], pageLength: 15
         });
-    }
-
-    function renderCards() {
-        const container = $('#cardContainer').empty();
-        globalData.forEach(s => {
-            container.append(`
-                <div class="song-card" data-id="${s.id}">
-                    <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8;"><span>#${s.id}</span><span>${s.writer}</span></div>
-                    <h4 style="margin:5px 0;">${s.name}</h4>
-                    <div style="font-size:11px;">🏷️ ${s.genre}</div>
-                    <div style="display:flex; gap:5px; margin:5px 0;">
-                        <span class="score-box" style="${getRainbow(s.musicQuality)}">${s.musicQuality}</span>
-                        <span class="score-box" style="${getRainbow(s.lyricsQuality)}">${s.lyricsQuality}</span>
-                        <span class="score-box" style="${getRainbow(s.originality)}">${s.originality}</span>
-                    </div>
-                    <div>${s.instruments.map(i => `<span class="instr-tag" style="cursor:default">${i}</span>`).join('')}</div>
-                    <div style="margin-top:auto; display:flex; justify-content:space-between; align-items:center; pt:10px; border-top:1px solid var(--border);">
-                        <b style="font-size:18px; color:var(--primary)">${s.price}M</b>
-                        <button onclick="addToCart('${s.id}')" style="background:var(--success); color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">Add</button>
-                    </div>
-                </div>`);
-        });
-    }
-
-    function toggleInstr(ins, el) {
-        $(el).toggleClass('selected');
-        selectedInstr = $('.instr-tag.selected').map((i, e) => $(e).text()).get();
-        const regex = selectedInstr.map(i => `(?=.*${i})`).join('');
-        $('#anaTablo').DataTable().column(5).search(regex, true, false).draw();
-        applyFilters();
     }
 
     function addToCart(id) {
@@ -226,43 +131,74 @@
     function updateCart() {
         $('#cartCount').text(selectedSongs.length);
         const list = $('#cartItems').empty();
-        selectedSongs.forEach(s => {
-            list.append(`<li class="cart-item"><span>${s.name}</span> <span onclick="removeFromCart('${s.id}')" style="cursor:pointer; font-weight:bold;">×</span></li>`);
-        });
+        selectedSongs.forEach(s => list.append(`<li style="display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.1);"><span>${s.name}</span> <span onclick="removeFromCart('${s.id}')" style="cursor:pointer; color:var(--danger); font-weight:bold;">×</span></li>`));
     }
 
     function removeFromCart(id) { selectedSongs = selectedSongs.filter(s => s.id != id); updateCart(); }
 
     function copyCart() {
-        if (selectedSongs.length === 0) return alert(LANGS[currentLang].cart_empty);
-        let msg = LANGS[currentLang].msg_head + ":\n"; // Başlık ve alt satır
+        if (selectedSongs.length === 0) return;
+        let l = LANGS[currentLang];
+        let msg = l.msg_head + ":\n";
         selectedSongs.forEach(s => {
-            msg += `🔹 [songid=${s.id} name=${s.name}] ${s.genre} ${s.musicQuality} ${s.lyricsQuality} ${s.originality} (${LANGS[currentLang].msg_writer}: ${s.writer} | ${LANGS[currentLang].msg_price}: ${s.price}M)\n`;
+            msg += `🔹 [songid=${s.id} name=${s.name}] ${s.genre} ${s.musicQuality} ${s.lyricsQuality} ${s.originality} (${l.msg_writer}: ${s.writer} | ${l.msg_price}: ${s.price}M)\n`;
         });
-        navigator.clipboard.writeText(msg).then(() => alert(LANGS[currentLang].msg_copied));
+        msg += `\n${l.msg_order}\nhttps://${activeServer}.popmundo.com/World/Popmundo.aspx/Conversations/Conversation/${charId}`;
+        navigator.clipboard.writeText(msg).then(() => alert("Kopyalandı!"));
     }
 
-    function toggleView(v) {
-        $('.btn-view').removeClass('active');
-        if(v === 'table') { $('#tableWrapper').show(); $('#cardContainer').hide(); $('#btnTable').addClass('active'); }
-        else { $('#tableWrapper').hide(); $('#cardContainer').css('display', 'grid'); $('#btnCards').addClass('active'); }
-    }
+    // DATABASE PUSH LOGIC
+    async function pushToDatabase() {
+        const token = $('#ghToken').val();
+        const rawInput = $('#rawJsonInput').val();
+        if (!token) return alert("GitHub Token is missing!");
+        if (!rawInput) return alert("Paste JSON data first!");
 
-    function applyFilters() {
-        const g = $('#genreFilter').val(), h = $('#hitFilter').is(':checked');
-        $('.song-card').each(function() {
-            const s = globalData.find(x => x.id == $(this).data('id'));
-            let show = (!g || s.genre === g) && (!h || s.isHit) && (selectedInstr.length === 0 || selectedInstr.every(i => s.instruments.includes(i)));
-            $(this).toggle(show);
-        });
-    }
+        $('#syncStatus').text("Connecting to GitHub...").css("color", "var(--primary)");
 
-    $('#genreFilter, #hitFilter').on('change', () => {
-        const t = $('#anaTablo').DataTable();
-        t.column(1).search($('#genreFilter').val()).draw();
-        t.column(7).search($('#hitFilter').is(':checked') ? 'HIT' : '').draw();
-        applyFilters();
-    });
+        try {
+            // 1. Get Current File Info (SHA is needed to update)
+            const getRes = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/${fileName}`, {
+                headers: { "Authorization": `token ${token}` }
+            });
+            const fileData = await getRes.json();
+            const currentSha = fileData.sha;
+            let currentContent = JSON.parse(atob(fileData.content));
+
+            // 2. Parse New Input
+            let newData = JSON.parse(rawInput);
+            if (!Array.isArray(newData)) newData = [newData]; // Convert single object to array
+
+            // 3. Merge (Add unique IDs only)
+            const existingIds = new Set(currentContent.songs.map(s => s.id));
+            newData.forEach(s => {
+                if (!existingIds.has(s.id)) currentContent.songs.push(s);
+            });
+
+            // 4. Push back to GitHub
+            const pushRes = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/${fileName}`, {
+                method: "PUT",
+                headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: `Database Update: Added ${newData.length} songs`,
+                    content: btoa(JSON.stringify(currentContent, null, 2)),
+                    sha: currentSha
+                })
+            });
+
+            if (pushRes.ok) {
+                $('#syncStatus').text("✅ Success! Database updated.").css("color", "var(--success)");
+                $('#rawJsonInput').val('');
+                globalData = currentContent.songs;
+                renderTable();
+            } else {
+                throw new Error("Push failed");
+            }
+        } catch (err) {
+            console.error(err);
+            $('#syncStatus').text("❌ Error: " + err.message).css("color", "var(--danger)");
+        }
+    }
 
     init();
     </script>
