@@ -55,7 +55,8 @@
         
         <div style="display:flex; gap:5px;">
             <button class="server-btn" style="border:1px solid var(--border);" onclick="toggleTheme()" data-key="theme">🌓 Tema</button>
-            <button class="server-btn" style="border:1px solid var(--border);" onclick="toggleLang()">�🇷 TR</button>
+            <button class="server-btn active" style="border:1px solid var(--border);" onclick="setLang('tr')" id="langTR">🇹🇷 TR</button>
+            <button class="server-btn" style="border:1px solid var(--border);" onclick="setLang('en')" id="langEN">🇺🇸 EN</button>
         </div>
 
         <div>
@@ -143,14 +144,19 @@
     function getRainbow(v) { let idx = Math.min(Math.max(parseInt(v)||0,0),26); return `background:${RAINBOW[idx][0]}; color:${RAINBOW[idx][1]};`; }
     function setServer(s) { activeServer = s; $('.server-selector .server-btn').removeClass('active'); event.target.classList.add('active'); renderAll(); }
     function toggleTheme() { $('body').attr('data-theme', $('body').attr('data-theme')==='dark'?'light':'dark'); }
-    function toggleLang() { 
-        currentLang = currentLang==='en'?'tr':'en'; 
-        const langBtn = event.target;
-        if (currentLang === 'tr') {
-            langBtn.textContent = '🇹🇷 TR';
+    function setLang(lang) { 
+        currentLang = lang;
+        
+        // Buton active durumlarını güncelle
+        $('#langTR').removeClass('active');
+        $('#langEN').removeClass('active');
+        
+        if (lang === 'tr') {
+            $('#langTR').addClass('active');
         } else {
-            langBtn.textContent = '🇺🇸 EN';
+            $('#langEN').addClass('active');
         }
+        
         updateTranslations(); 
         renderAll(); 
     }
@@ -366,17 +372,37 @@
             // JSON'ı parse et ve doğrula
             let newData;
             try {
-                // JSON string'i temizle
+                // JSON string'i temizle ve debug et
                 let cleanJson = jsonText;
+                console.log('Original JSON length:', jsonText.length);
+                console.log('Original JSON preview:', jsonText.substring(0, 200) + '...');
                 
-                // Eğer string içindeki format farklıysa
-                if (jsonText.includes('"songs":[')) {
+                // Yeni format için özel parsing
+                if (jsonText.includes('"timestamp"') && jsonText.includes('"songs":[')) {
+                    console.log('Detected new format with timestamp');
                     // Doğrudan songs array'ını al
+                    const songsMatch = jsonText.match(/"songs":\[(.*?)\]/s);
+                    if (songsMatch) {
+                        cleanJson = '{"songs":[' + songsMatch[1] + ']}';
+                        console.log('Extracted songs array:', cleanJson.substring(0, 200) + '...');
+                    }
+                } else if (jsonText.includes('"songs":[')) {
+                    console.log('Detected songs array format');
                     const match = jsonText.match(/"songs":\[(.*?)\]/);
                     if (match) {
                         cleanJson = match[0];
+                        console.log('Extracted songs:', cleanJson.substring(0, 200) + '...');
                     }
+                } else {
+                    console.log('Using direct JSON format');
+                    cleanJson = jsonText;
                 }
+                
+                // Geçersiz karakterleri temizle
+                cleanJson = cleanJson.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+                cleanJson = cleanJson.replace(/[\u2000-\u20FF\u2028-\u202F\u205F-\u206F\u3000-\u30FF\uFE00-\uFEFF\uFF00-\uFFFF]/g, '');
+                
+                console.log('Cleaned JSON:', cleanJson.substring(0, 200) + '...');
                 
                 // JSON'ı parse et
                 const parsed = JSON.parse(cleanJson);
@@ -393,8 +419,11 @@
                 }
                 
                 if(!Array.isArray(newData)) newData = [newData];
+                console.log('Parsed songs count:', newData.length);
             } catch(e) {
-                throw new Error("Invalid JSON format: " + e.message);
+                console.error('JSON Parse Error:', e);
+                console.error('Problematic JSON:', jsonText.substring(0, 500));
+                throw new Error("Invalid JSON format: " + e.message + "\n\nTip: Sadece şarkı verilerini yapıştırın, metadata içermeyen JSON formatını kullanın.");
             }
             
             // Yeni şarkıları ekle
