@@ -54,7 +54,7 @@
         </div>
         
         <div style="display:flex; gap:5px;">
-            <button class="server-btn active" style="border:1px solid var(--border);" onclick="setLang('tr')" id="langTR">��🇷 TR</button>
+            <button class="server-btn active" style="border:1px solid var(--border);" onclick="setLang('tr')" id="langTR">�� TR</button>
             <button class="server-btn" style="border:1px solid var(--border);" onclick="setLang('en')" id="langEN">🇺🇸 EN</button>
             <button class="server-btn" style="border:1px solid var(--border);" onclick="setTheme('light')" id="btnLight">☀️ Light</button>
             <button class="server-btn" style="border:1px solid var(--border);" onclick="setTheme('dark')" id="btnDark">🌙 Dark</button>
@@ -113,6 +113,10 @@
         <div id="adminPanel">
             <h4 style="margin:0 0 10px 0; color:var(--admin);">Admin: Database Sync</h4>
             <input type="password" id="ghToken" placeholder="GitHub Token" style="width:100%; padding:8px; margin-bottom:10px; border-radius:5px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
+            <div style="margin-bottom:10px;">
+                <button onclick="pasteFromClipboard()" style="width:100%; padding:8px; background:var(--success); color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer; margin-bottom:5px;">📋 Paste from SongMaster</button>
+                <button onclick="clearJson()" style="width:100%; padding:6px; background:var(--admin); color:white; border:none; border-radius:5px; font-size:11px; cursor:pointer;">🗑️ Clear JSON</button>
+            </div>
             <textarea id="rawJson" placeholder="Yapıştır / Paste JSON here..."></textarea>
             <button onclick="pushToDB()" style="margin-top:10px; width:100%; padding:10px; background:var(--admin); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">DATABASE GÜNCELLE / SYNC</button>
             <div id="syncLog" style="font-size:10px; margin-top:5px;"></div>
@@ -557,6 +561,31 @@
     }
 
     init();
+
+    // Paste from SongMaster
+    function pasteFromClipboard() {
+        navigator.clipboard.readText().then(text => {
+            if (text) {
+                $('#rawJson').val(text);
+                $('#syncLog').text("📋 JSON clipboard'dan yapıştırıldı!").css("color", "lime");
+            } else {
+                $('#syncLog').text("❌ Clipboard'da veri yok!").css("color", "red");
+            }
+        }).catch(err => {
+            // Fallback: Prompt ile al
+            const text = prompt("SongMaster'dan kopyaladığınız JSON verisini yapıştırın:");
+            if (text) {
+                $('#rawJson').val(text);
+                $('#syncLog').text("📋 JSON manuel olarak yapıştırıldı!").css("color", "lime");
+            }
+        });
+    }
+    
+    // Clear JSON
+    function clearJson() {
+        $('#rawJson').val('');
+        $('#syncLog').text("🗑️ JSON temizlendi!").css("color", "orange");
+    }
 
     // Dropdown dışına tıklayınca kapat
     $(document).on('click', function(e) {
