@@ -70,7 +70,7 @@
 
         <div class="stat-group">
             <div class="stat-card"><h3 style="font-size:9px; margin:0;">Toplam</h3><p id="s-total" style="margin:4px 0; font-weight:bold;">0</p></div>
-            <div class="stat-card"><h3 style="font-size:9px; margin:0; color:var(--admin);">VURGU</h3><p id="s-hit" style="margin:4px 0; font-weight:bold;">0</p></div>
+            <div class="stat-card"><h3 style="font-size:9px; margin:0;" data-key="hit">VURGU</h3><p id="s-hit" style="margin:4px 0; font-weight:bold;">0</p></div>
         </div>
 
         <div style="background:var(--bg); padding:10px; border-radius:10px; border:1px solid var(--border);">
@@ -334,6 +334,12 @@
     }
     
     function applyFilters() {
+        console.log('Applying filters...');
+        console.log('Genre filter value:', $('#genreFilter').val());
+        console.log('Hit only checked:', $('#hitOnly').is(':checked'));
+        console.log('Min Music:', $('#minMusic').val());
+        console.log('Min Lyrics:', $('#minLyrics').val());
+        console.log('Selected instruments:', selectedInstr);
         renderTable();
         renderCards();
     }
@@ -344,7 +350,11 @@
     });
     
     $('#hitOnly').on('change', applyFilters);
-    $('#genreFilter').on('change', function() { applyFilters(); });
+    $('#genreFilter').on('change', function() { 
+        const selectedGenre = $(this).val();
+        console.log('Genre filter changed to:', selectedGenre);
+        applyFilters(); 
+    });
 
     // DATABASE PUSH (Senin parse ettiğin JSON'u GitHub'a atar)
     async function pushToDB() {
