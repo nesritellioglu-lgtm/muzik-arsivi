@@ -2,166 +2,236 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>🎵 SongMaster Arşivi</title>
+    <title>🎵 SongMaster Market</title>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <style>
-        body { background-color: #0f111a; color: #e0e6ed; font-family: 'Inter', sans-serif; padding: 20px; }
-        .stats-panel { display: flex; gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: #1a1d2e; padding: 15px; border-radius: 12px; border-bottom: 3px solid #7289da; min-width: 120px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .stat-card h3 { font-size: 11px; color: #94a3b8; margin: 0; text-transform: uppercase; }
-        .stat-card p { font-size: 22px; font-weight: bold; margin: 5px 0 0; color: #7289da; }
+        body { background-color: #0d0e14; color: #e0e6ed; font-family: 'Inter', sans-serif; padding: 20px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .stats-panel { display: flex; gap: 10px; }
+        .stat-card { background: #161927; padding: 12px; border-radius: 10px; border: 1px solid #2d334a; min-width: 100px; text-align: center; }
+        
+        /* SEPET PANELİ */
+        .cart-panel { background: #1c2035; padding: 15px; border-radius: 12px; border: 2px solid #7289da; min-width: 300px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        #cartItems { font-size: 11px; max-height: 120px; overflow-y: auto; margin: 10px 0; padding: 0; list-style: none; border-top: 1px solid #2d334a; }
+        .cart-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #2d334a; }
+        .copy-btn { background: #43b581; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; transition: 0.2s; }
+        .copy-btn:hover { background: #3ca374; }
 
-        .controls { background: #1a1d2e; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
-        button.view-btn { background: #7289da; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
-        button.view-btn:hover { background: #5b70be; }
+        .controls { background: #161927; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .view-btn { background: #34384e; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; }
+        .active-view { background: #7289da !important; }
+
+        /* RAINBOW PUAN KUTULARI */
+        .score-box { display: inline-block; width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 4px; font-weight: bold; font-size: 13px; text-shadow: 1px 1px 1px rgba(0,0,0,0.3); }
         
-        #cardContainer { display: none; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
-        .song-card { background: #1a1d2e; border-radius: 12px; padding: 20px; border: 1px solid #2d334a; transition: 0.3s; position: relative; }
-        .song-card:hover { transform: translateY(-5px); border-color: #7289da; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
-        .song-card h4 { margin: 0 0 10px 0; color: #fff; font-size: 18px; }
-        .song-card .meta { font-size: 12px; color: #94a3b8; margin-bottom: 15px; }
-        .song-card .scores { display: flex; justify-content: space-between; background: #0f111a; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
-        .score-val { display: block; font-weight: bold; color: #7289da; font-size: 16px; }
-        .score-lbl { font-size: 10px; color: #64748b; }
-        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-        
-        table.dataTable { background: #1a1d2e !important; color: #e0e6ed !important; border-radius: 8px; overflow: hidden; }
-        .dataTables_wrapper .dataTables_filter input { background: #0f111a; color: white; border: 1px solid #2d334a; border-radius: 6px; padding: 5px; }
-        .hit-badge { background: #f87171; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; }
-        .instr-tag { background: #334155; color: #cbd5e1; padding: 2px 5px; border-radius: 4px; font-size: 10px; margin-right: 3px; border: 1px solid #475569; }
+        /* KARTLAR */
+        #cardContainer { display: none; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .song-card { background: #161927; border-radius: 12px; padding: 15px; border: 1px solid #2d334a; transition: 0.3s; }
+        .song-card:hover { border-color: #7289da; transform: translateY(-3px); }
+
+        table.dataTable { background: #161927 !important; border-radius: 8px; overflow: hidden; }
+        .hit-badge { background: #ff4757; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; }
+        .instr-tag { background: #2d334a; color: #7289da; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin: 2px; display: inline-block; cursor: pointer; border: 1px solid transparent; }
+        .instr-tag.selected { background: #7289da; color: white; border-color: #fff; }
     </style>
 </head>
 <body>
 
-    <div class="stats-panel">
-        <div class="stat-card"><h3>Toplam Arşiv</h3><p id="s-total">0</p></div>
-        <div class="stat-card"><h3>🔥 HIT Şarkı</h3><p id="s-hit">0</p></div>
-        <div class="stat-card"><h3>Ortalama Fiyat</h3><p id="s-price">0M</p></div>
+    <div class="top-bar">
+        <div class="stats-panel">
+            <div class="stat-card"><h3>Arşiv</h3><p id="s-total">0</p></div>
+            <div class="stat-card"><h3>🔥 HIT</h3><p id="s-hit">0</p></div>
+        </div>
+
+        <div class="cart-panel">
+            <h4 style="margin:0;">🛒 Seçilen Şarkılar (<span id="cartCount">0</span>)</h4>
+            <ul id="cartItems"></ul>
+            <button class="copy-btn" onclick="copyCart()">📋 Verileri Oyuna Göre Kopyala</button>
+        </div>
     </div>
 
     <div class="controls">
-        <button class="view-btn" onclick="toggleView('table')">📋 Tablo</button>
-        <button class="view-btn" onclick="toggleView('cards')" style="background:#4752c4;">🎴 Kartlar</button>
-        <select id="genreFilter" style="background:#0f111a; color:white; padding:8px; border-radius:6px; border:1px solid #2d334a;"><option value="">Tüm Türler</option></select>
-        <label style="cursor:pointer;"><input type="checkbox" id="hitFilter"> Sadece HIT</label>
-        <span id="loadingMsg" style="color: #7289da; font-weight: bold; display:none;">⌛ Yükleniyor...</span>
+        <button id="btnTable" class="view-btn active-view" onclick="toggleView('table')">📋 Tablo</button>
+        <button id="btnCards" class="view-btn" onclick="toggleView('cards')">🎴 Kartlar</button>
+        <select id="genreFilter" style="background:#0d0e14; color:white; padding:8px; border-radius:6px; border:1px solid #2d334a;"><option value="">Tüm Türler</option></select>
+        <div id="instrFilterArea" style="flex-grow:1;">
+            <div id="instrContainer"></div>
+        </div>
+        <label style="font-size: 13px; cursor:pointer;"><input type="checkbox" id="hitFilter"> Sadece HIT</label>
     </div>
 
     <div id="tableWrapper">
         <table id="anaTablo" class="display" style="width:100%">
             <thead>
                 <tr>
-                    <th>ID</th><th>Şarkı</th><th>Yazar</th><th>Tür</th><th>Müzik</th><th>Söz</th><th>Özgün</th><th>Fiyat</th><th>Durum</th>
+                    <th>Şarkı</th><th>Tür</th><th>Müzik</th><th>Sözler</th><th>Özgün</th><th>Enstrümanlar</th><th>Fiyat</th><th>Durum</th><th>Yazar</th><th>ID</th><th>🛒</th>
                 </tr>
             </thead>
         </table>
     </div>
-
     <div id="cardContainer"></div>
 
     <script>
+    const RAINBOW = [
+        ['#ff0000','#fff'],['#ff0036','#fff'],['#ff006c','#fff'],['#ff00a2','#fff'],['#ff00d8','#fff'],['#f000ff','#fff'],['#ba00ff','#fff'],['#8400ff','#fff'],['#4e00ff','#fff'],['#1900ff','#fff'],['#001dff','#fff'],['#0053ff','#fff'],['#0089ff','#fff'],['#00bfff','#fff'],['#00f5ff','#000'],['#00ffd3','#000'],['#00ff9d','#000'],['#00ff67','#000'],['#00ff31','#000'],['#05ff00','#000'],['#3bff00','#000'],['#71ff00','#000'],['#a7ff00','#000'],['#ddff00','#000'],['#ffeb00','#000'],['#ffb500','#000'],['#ff8000','#000']
+    ];
+
     let globalData = [];
-    const kullanici = "nesritellioglu-lgtm"; 
+    let selectedSongs = [];
+    let selectedInstr = [];
+    const kullanici = "nesritellioglu-lgtm";
     const repo = "muzik-arsivi";
 
+    function getRainbowStyle(val) {
+        // 0-26 aralığını güvenli şekilde RAINBOW dizinine eşler
+        let v = parseInt(val);
+        let idx = isNaN(v) ? 0 : Math.min(Math.max(v, 0), RAINBOW.length - 1);
+        let colors = RAINBOW[idx];
+        return `background:${colors[0]}; color:${colors[1]};`;
+    }
+
     async function baslat() {
-        $('#loadingMsg').show();
-        try {
-            // API'den dosyaları çek (t=... ile cache temizliği yapar)
-            const res = await fetch(`https://api.github.com/repos/${kullanici}/${repo}/contents/?t=${new Date().getTime()}`);
-            const dosyalar = await res.json();
-            
-            globalData = [];
-
-            for (let f of dosyalar) {
-                // İsmi ne olursa olsun içinde "JSON" geçen .txt veya .json dosyalarını oku
-                if (f.name.toUpperCase().includes("JSON") && (f.name.endsWith(".txt") || f.name.endsWith(".json"))) {
-                    const c = await fetch(f.download_url + `?t=${new Date().getTime()}`);
-                    const d = await c.json();
-                    if (d.songs) globalData = globalData.concat(d.songs);
-                }
-            }
-
-            if(globalData.length > 0) {
-                updateUI();
-            } else {
-                alert("Uyarı: Okunabilir şarkı verisi bulunamadı!");
-            }
-        } catch (err) {
-            console.error("Hata:", err);
-        }
-        $('#loadingMsg').hide();
-    }
-
-    function updateUI() {
-        // İstatistikler 
-        $('#s-total').text(globalData.length);
-        $('#s-hit').text(globalData.filter(s => s.isHit).length);
-        const avg = (globalData.reduce((a, b) => a + b.price, 0) / globalData.length).toFixed(1);
-        $('#s-price').text(avg + "M");
-
-        // Türleri doldur
-        const turler = [...new Set(globalData.map(s => s.genre))];
-        $('#genreFilter').html('<option value="">Tüm Türler</option>');
-        turler.forEach(t => $('#genreFilter').append(`<option value="${t}">${t}</option>`));
-
-        renderTable();
-        renderCards();
-    }
-
-    function renderTable() {
-        if ($.fn.DataTable.isDataTable('#anaTablo')) $('#anaTablo').DataTable().destroy();
+        const res = await fetch(`https://api.github.com/repos/${kullanici}/${repo}/contents/?t=${Date.now()}`);
+        const dosyalar = await res.json();
         
-        const tablo = $('#anaTablo').DataTable({
-            data: globalData,
-            columns: [
-                { data: "id" }, // [cite: 5]
-                { data: "name", render: d => `<b>${d}</b>` }, // [cite: 5]
-                { data: "writer" }, // [cite: 5]
-                { data: "genre" }, // [cite: 5]
-                { data: "musicQuality" }, // [cite: 5]
-                { data: "lyricsQuality" }, // [cite: 5]
-                { data: "originality" }, // [cite: 5]
-                { data: "price", render: d => `${d}M` }, // [cite: 5]
-                { data: "isHit", render: d => d ? '<span class="hit-badge">HIT</span>' : 'N' } // [cite: 5]
-            ],
-            language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json" },
-            order: [[0, "desc"]]
+        for (let f of dosyalar) {
+            if (f.name.toUpperCase().includes("JSON") && (f.name.endsWith(".txt") || f.name.endsWith(".json"))) {
+                const c = await fetch(f.download_url);
+                const d = await c.json();
+                if (d.songs) globalData = globalData.concat(d.songs);
+            }
+        }
+
+        // Enstrüman Filtre Butonları
+        let allInstr = [...new Set(globalData.flatMap(s => s.instruments))];
+        allInstr.sort().forEach(ins => {
+            $('#instrContainer').append(`<span class="instr-tag" onclick="toggleInstr('${ins}', this)">${ins}</span>`);
         });
 
-        $('#genreFilter').on('change', function() { tablo.column(3).search(this.value).draw(); });
-        $('#hitFilter').on('change', function() { tablo.column(8).search(this.checked ? 'HIT' : '').draw(); });
+        // Tür Filtresi
+        [...new Set(globalData.map(s => s.genre))].sort().forEach(t => $('#genreFilter').append(`<option value="${t}">${t}</option>`));
+
+        renderUI();
     }
 
-    function renderCards() {
-        const container = $('#cardContainer');
-        container.empty();
+    function renderUI() {
+        $('#s-total').text(globalData.length);
+        $('#s-hit').text(globalData.filter(s => s.isHit).length);
+
+        const tablo = $('#anaTablo').DataTable({
+            data: globalData,
+            destroy: true,
+            pageLength: 20,
+            columns: [
+                { data: "name", render: d => `<b>${d}</b>` },
+                { data: "genre" },
+                { data: "musicQuality", render: d => `<span class="score-box" style="${getRainbowStyle(d)}">${d}</span>` },
+                { data: "lyricsQuality", render: d => `<span class="score-box" style="${getRainbowStyle(d)}">${d}</span>` },
+                { data: "originality", render: d => `<span class="score-box" style="${getRainbowStyle(d)}">${d}</span>` },
+                { data: "instruments", render: d => d.map(i => `<small class="instr-tag" style="cursor:default">${i}</small>`).join('') },
+                { data: "price", render: d => `<b style="color:#7289da">${d}M</b>` },
+                { data: "isHit", render: d => d ? '<span class="hit-badge">HIT</span>' : 'N' },
+                { data: "writer" },
+                { data: "id" },
+                { data: null, orderable: false, render: (d, t, r) => `<button onclick="addToCart('${r.id}')" style="cursor:pointer; background:#7289da; border:none; color:white; border-radius:4px;">➕</button>` }
+            ],
+            language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json" },
+            order: [[9, "desc"]]
+        });
+
+        const container = $('#cardContainer').empty();
         globalData.forEach(s => {
-            const card = `
-                <div class="song-card">
-                    ${s.isHit ? '<span class="hit-badge" style="position:absolute; top:15px; right:15px;">🔥 HIT</span>' : ''}
-                    <div class="meta">ID: ${s.id} | Yazar: ${s.writer}</div>
-                    <h4>${s.name}</h4>
-                    <div class="meta">🏷️ ${s.genre}</div>
-                    <div class="scores">
-                        <div class="score-item"><span class="score-val">${s.musicQuality}</span><span class="score-lbl">MÜZİK</span></div>
-                        <div class="score-item"><span class="score-val">${s.lyricsQuality}</span><span class="score-lbl">SÖZ</span></div>
-                        <div class="score-item"><span class="score-val">${s.originality}</span><span class="score-lbl">ÖZGÜN</span></div>
+            container.append(`
+                <div class="song-card" data-id="${s.id}">
+                    <div style="font-size:10px; color:#94a3b8; display:flex; justify-content:space-between;">
+                        <span>ID: ${s.id}</span>
+                        <span>${s.writer}</span>
                     </div>
-                    <div class="card-footer">
-                        <span style="font-weight:bold; color:#7289da; font-size:20px;">${s.price}M</span>
-                        <div>${s.instruments.map(i => `<span class="instr-tag">${i}</span>`).join('')}</div>
+                    <h4 style="margin:10px 0;">${s.name}</h4>
+                    <div style="font-size:11px; margin-bottom:10px;">🏷️ ${s.genre}</div>
+                    <div style="display:flex; gap:8px; margin-bottom:15px; background:#0d0e14; padding:8px; border-radius:8px; justify-content:center;">
+                        <div style="text-align:center"><span class="score-box" style="${getRainbowStyle(s.musicQuality)}">${s.musicQuality}</span><div style="font-size:9px;margin-top:2px">MÜZİK</div></div>
+                        <div style="text-align:center"><span class="score-box" style="${getRainbowStyle(s.lyricsQuality)}">${s.lyricsQuality}</span><div style="font-size:9px;margin-top:2px">SÖZ</div></div>
+                        <div style="text-align:center"><span class="score-box" style="${getRainbowStyle(s.originality)}">${s.originality}</span><div style="font-size:9px;margin-top:2px">ÖZGÜN</div></div>
                     </div>
-                </div>`;
-            container.append(card);
+                    <div style="margin-bottom:10px;">${s.instruments.map(i => `<span class="instr-tag" style="cursor:default">${i}</span>`).join('')}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #2d334a; pt:10px; margin-top:5px;">
+                        <span style="color:#7289da; font-weight:bold; font-size:18px;">${s.price}M</span>
+                        <button onclick="addToCart('${s.id}')" style="background:#43b581; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Sepete Ekle</button>
+                    </div>
+                </div>
+            `);
+        });
+
+        $('#genreFilter').on('change', function() { tablo.column(1).search(this.value).draw(); filterCards(); });
+        $('#hitFilter').on('change', function() { tablo.column(7).search(this.checked ? 'HIT' : '').draw(); filterCards(); });
+    }
+
+    function toggleInstr(ins, el) {
+        $(el).toggleClass('selected');
+        if (selectedInstr.includes(ins)) selectedInstr = selectedInstr.filter(i => i !== ins);
+        else selectedInstr.push(ins);
+        
+        // DataTables Regex Arama (Tüm seçilen enstrümanları içerenleri bulur)
+        const regex = selectedInstr.map(i => `(?=.*${i})`).join('');
+        $('#anaTablo').DataTable().column(5).search(regex, true, false).draw();
+        filterCards();
+    }
+
+    function addToCart(id) {
+        const song = globalData.find(s => s.id == id);
+        if (song && !selectedSongs.find(s => s.id == id)) {
+            selectedSongs.push(song);
+            updateCartUI();
+        }
+    }
+
+    function updateCartUI() {
+        $('#cartCount').text(selectedSongs.length);
+        const list = $('#cartItems').empty();
+        selectedSongs.forEach(s => {
+            list.append(`<li class="cart-item"><span>${s.name} (${s.id})</span> <button onclick="removeFromCart('${s.id}')" style="background:none; border:none; color:#ff4757; cursor:pointer; font-weight:bold;">X</button></li>`);
+        });
+    }
+
+    function removeFromCart(id) {
+        selectedSongs = selectedSongs.filter(s => s.id != id);
+        updateCartUI();
+    }
+
+    function copyCart() {
+        if (selectedSongs.length === 0) return alert("Sepetiniz boş!");
+        let text = "";
+        selectedSongs.forEach(s => {
+            text += `[songid=${s.id} name=${s.name}] (Yazar: ${s.writer} | Fiyat: ${s.price}M)\n`;
+        });
+        
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Kopyalandı! Oyun içine yapıştırabilirsiniz.\n\nÖrnek format:\n" + text.split('\n')[0]);
         });
     }
 
     function toggleView(v) {
-        if(v === 'table') { $('#tableWrapper').fadeIn(); $('#cardContainer').hide(); }
-        else { $('#tableWrapper').hide(); $('#cardContainer').css('display', 'grid').fadeIn(); }
+        $('.view-btn').removeClass('active-view');
+        if(v === 'table') { $('#tableWrapper').fadeIn(); $('#cardContainer').hide(); $('#btnTable').addClass('active-view'); }
+        else { $('#tableWrapper').hide(); $('#cardContainer').css('display', 'grid').fadeIn(); $('#btnCards').addClass('active-view'); }
+    }
+
+    function filterCards() {
+        const genre = $('#genreFilter').val();
+        const onlyHit = $('#hitFilter').is(':checked');
+        
+        $('.song-card').each(function() {
+            const id = $(this).data('id');
+            const song = globalData.find(s => s.id == id);
+            let show = true;
+            if (genre && song.genre !== genre) show = false;
+            if (onlyHit && !song.isHit) show = false;
+            if (selectedInstr.length > 0 && !selectedInstr.every(i => song.instruments.includes(i))) show = false;
+            $(this).toggle(show);
+        });
     }
 
     baslat();
