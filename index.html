@@ -441,64 +441,86 @@
             } catch(e) {
                 console.log("File not found, creating new...");
             }
+        } catch(e) {
+            console.log("File not found, creating new...");
+        }
             
-            // JSON'ı parse et ve doğrula
-            let newData;
-            try {
-                // JSON string'i temizle ve debug et
-                let cleanJson = jsonText;
-                console.log('Original JSON length:', jsonText.length);
-                console.log('Original JSON preview:', jsonText.substring(0, 200) + '...');
+        // JSON'ı parse et ve doğrula
+        let newData;
+        try {
+            // JSON string'i temizle ve debug et
+            let cleanJson = jsonText.trim();
+            console.log('Original JSON length:', jsonText.length);
+            console.log('Original JSON preview:', jsonText.substring(0, 200) + '...');
+            console.log('Original JSON end:', jsonText.substring(jsonText.length - 50) + '...');
                 
-                // Yeni format için özel parsing
-                if (jsonText.includes('"timestamp"') && jsonText.includes('"songs":[')) {
-                    console.log('Detected new format with timestamp');
-                    // Doğrudan songs array'ını al
-                    const songsMatch = jsonText.match(/"songs":\[(.*?)\]/s);
-                    if (songsMatch) {
-                        cleanJson = '{"songs":[' + songsMatch[1] + ']}';
-                        console.log('Extracted songs array:', cleanJson.substring(0, 200) + '...');
-                    }
-                } else if (jsonText.includes('"songs":[')) {
-                    console.log('Detected songs array format');
-                    const match = jsonText.match(/"songs":\[(.*?)\]/);
-                    if (match) {
-                        cleanJson = match[0];
-                        console.log('Extracted songs:', cleanJson.substring(0, 200) + '...');
-                    }
+            // SongMaster formatı için özel parsing - timestamp ve metadata varsa
+            if (cleanJson.includes('"timestamp"') && cleanJson.includes('"songs":[')) {
+                console.log('Detected SongMaster format with timestamp');
+                // Doğrudan songs array'ını al - daha hassas regex
+                const songsMatch = cleanJson.match(/"songs":\s*(\[[\s\S]*?\])/);
+                if (songsMatch) {
+                    cleanJson = '{"songs":' + songsMatch[1] + '}';
+                    console.log('Extracted songs array:', cleanJson.substring(0, 200) + '...');
                 } else {
-                    console.log('Using direct JSON format');
-                    cleanJson = jsonText;
+                    throw new Error('Could not extract songs array from SongMaster format');
                 }
-                
-                // Geçersiz karakterleri temizle
-                cleanJson = cleanJson.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
-                cleanJson = cleanJson.replace(/[\u2000-\u20FF\u2028-\u202F\u205F-\u206F\u3000-\u30FF\uFE00-\uFEFF\uFF00-\uFFFF]/g, '');
-                
-                console.log('Cleaned JSON:', cleanJson.substring(0, 200) + '...');
-                
-                // JSON'ı parse et
-                const parsed = JSON.parse(cleanJson);
-                
-                // Farklı formatları kontrol et
-                if (parsed.songs && Array.isArray(parsed.songs)) {
-                    newData = parsed.songs;
-                } else if (Array.isArray(parsed)) {
-                    newData = parsed;
-                } else if (parsed.songs) {
-                    newData = parsed.songs;
+            } else if (cleanJson.includes('"songs":[')) {
+                console.log('Detected simple songs array format');
+                const match = cleanJson.match(/"songs":\s*(\[[\s\S]*?\])/);
+                if (match) {
+                    cleanJson = match[0];
+                    console.log('Extracted songs:', cleanJson.substring(0, 200) + '...');
                 } else {
-                    throw new Error('Invalid JSON structure - expected songs array');
+                    throw new Error('Could not extract songs array');
                 }
-                
-                if(!Array.isArray(newData)) newData = [newData];
-                console.log('Parsed songs count:', newData.length);
-            } catch(e) {
-                console.error('JSON Parse Error:', e);
-                console.error('Problematic JSON:', jsonText.substring(0, 500));
-                throw new Error("Invalid JSON format: " + e.message + "\n\nTip: Sadece şarkı verilerini yapıştırın, metadata içermeyen JSON formatını kullanın.");
+            } else if (cleanJson.startsWith('[') && cleanJson.endsWith(']')) {
+                console.log('Detected direct array format');
+                cleanJson = '{"songs":' + cleanJson + '}';
+            } else if (cleanJson.startsWith('{') && cleanJson.endsWith('}')) {
+                console.log('Detected single object format');
+                cleanJson = '{"songs":[' + cleanJson + ']}';
+            } else {
+                console.log('Unknown format, trying direct parse');
+                cleanJson = '{"songs":' + cleanJson + '}';
             }
-            
+                
+            // Geçersiz karakterleri temizle - daha agresif
+            cleanJson = cleanJson.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+            cleanJson = cleanJson.replace(/[\u2000-\u20FF\u2028-\u202F\u205F-\u206F\u3000-\u30FF\uFE00-\uFEFF\uFF00-\uFFFF]/g, '');
+            cleanJson = cleanJson.replace(/[\u201C\u201D\u2018\u2019]/g, '"'); // Smart quotes
+            cleanJson = cleanJson.replace(/[\u2013\u2014]/g, '-'); // Smart dashes
+            cleanJson = cleanJson.replace(/\s+/g, ' '); // Multiple spaces
+                
+            // Başında ve sonunda gereksiz karakterleri temizle
+            cleanJson = cleanJson.replace(/^[\s,]+|[\s,]+$/g, '');
+                
+            console.log('Cleaned JSON:', cleanJson.substring(0, 200) + '...');
+            console.log('Cleaned JSON end:', cleanJson.substring(cleanJson.length - 50) + '...');
+                
+            // JSON'ı parse et
+            const parsed = JSON.parse(cleanJson);
+                
+            // Farklı formatları kontrol et
+            if (parsed.songs && Array.isArray(parsed.songs)) {
+                newData = parsed.songs;
+            } else if (Array.isArray(parsed)) {
+                newData = parsed;
+            } else if (parsed.songs) {
+                newData = parsed.songs;
+            } else {
+                throw new Error('Invalid JSON structure - expected songs array');
+            }
+                
+            if(!Array.isArray(newData)) newData = [newData];
+            console.log('Parsed songs count:', newData.length);
+        } catch(e) {
+            console.error('JSON Parse Error:', e);
+            console.error('Problematic JSON:', jsonText.substring(0, 500));
+            throw new Error("Invalid JSON format: " + e.message + "\n\nTip: Sadece şarkı verilerini yapıştırın, metadata içermeyen JSON formatını kullanın.");
+        }
+
+        try {
             // Yeni şarkıları ekle
             newData.forEach(s => { 
                 if(!currentContent.songs.find(ex => ex.id == s.id)) {
