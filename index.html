@@ -522,6 +522,7 @@
 
         try {
             // Yeni şarkıları ekle
+            const currentContent = {songs: []}; // currentContent değişkenini buraya taşıdık
             newData.forEach(s => { 
                 if(!currentContent.songs.find(ex => ex.id == s.id)) {
                     // Gerekli alanları kontrol et - daha esnek
