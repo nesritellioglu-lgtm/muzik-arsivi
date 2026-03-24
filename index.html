@@ -14,15 +14,13 @@
             --bg: #f0f2f5; --panel: #ffffff; --text: #1c1e21; --border: #ccd0d5; --primary: #4752c4; --success: #2e7d32;
         }
 
-        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; transition: 0.3s; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; transition: 0.3s; }
         
-        /* SIDEBAR */
         .sidebar { width: 320px; background: var(--panel); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
         .main-content { flex: 1; padding: 25px; overflow-y: auto; position: relative; }
 
         .settings-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .btn-setting { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px; }
-        .btn-setting:hover { border-color: var(--primary); }
 
         .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .stat-card { background: var(--bg); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
@@ -31,27 +29,23 @@
 
         .filter-box { background: var(--bg); padding: 15px; border-radius: 10px; border: 1px solid var(--border); }
         .filter-label { font-size: 12px; font-weight: bold; margin-bottom: 8px; display: block; color: #94a3b8; }
-        select, input[type="text"] { width: 100%; background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 6px; box-sizing: border-box; }
+        select { width: 100%; background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 6px; }
 
-        /* SEPET */
-        .cart-box { background: var(--primary); color: white; padding: 15px; border-radius: 12px; }
-        #cartItems { list-style: none; padding: 0; margin: 10px 0; font-size: 11px; max-height: 100px; overflow-y: auto; }
+        .cart-box { background: var(--primary); color: white; padding: 15px; border-radius: 12px; margin-top: auto; }
+        #cartItems { list-style: none; padding: 0; margin: 10px 0; font-size: 11px; max-height: 120px; overflow-y: auto; }
         .cart-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.2); }
-        .btn-copy { background: var(--success); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .btn-copy { background: var(--success); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; }
 
-        /* GÖRÜNÜM BUTONLARI */
         .view-switcher { margin-bottom: 20px; display: flex; gap: 10px; }
         .btn-view { padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; font-weight: bold; }
         .btn-view.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        /* RAINBOW & TABLO */
         .score-box { display: inline-block; width: 26px; height: 26px; line-height: 26px; text-align: center; border-radius: 4px; font-weight: bold; font-size: 12px; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
-        table.dataTable { background: var(--panel) !important; color: var(--text) !important; font-size: 13px; border-radius: 10px; overflow: hidden; }
-        table.dataTable thead th { background: var(--bg) !important; border-bottom: 1px solid var(--border) !important; padding: 12px !important; }
         
-        /* KARTLAR */
+        table.dataTable { background: var(--panel) !important; color: var(--text) !important; font-size: 13px; border-radius: 10px; }
+        
         #cardContainer { display: none; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .song-card { background: var(--panel); border-radius: 12px; padding: 15px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+        .song-card { background: var(--panel); border-radius: 12px; padding: 15px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
         .instr-tag { background: var(--bg); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid var(--border); display: inline-block; margin: 2px; cursor: pointer; }
         .instr-tag.selected { background: var(--primary); color: white; }
     </style>
@@ -59,7 +53,7 @@
 <body data-theme="dark">
 
     <div class="sidebar">
-        <h2 style="margin:0; font-size: 20px;">🎵 SongMaster</h2>
+        <h2 style="margin:0; font-size: 22px;">🎵 SongMaster</h2>
         
         <div class="settings-group">
             <button class="btn-setting" onclick="toggleTheme()">🌓 Theme</button>
@@ -84,9 +78,9 @@
         </div>
 
         <div class="cart-box">
-            <h4 style="margin:0;"><span data-key="cart_title">My Selection</span> (<span id="cartCount">0</span>)</h4>
+            <h4 style="margin:0;"><span data-key="cart_title">Selection</span> (<span id="cartCount">0</span>)</h4>
             <ul id="cartItems"></ul>
-            <button class="btn-copy" onclick="copyCart()" data-key="btn_copy">Copy to Clipboard</button>
+            <button class="btn-copy" onclick="copyCart()" data-key="btn_copy">Copy Selection</button>
         </div>
     </div>
 
@@ -100,22 +94,14 @@
             <table id="anaTablo" class="display" style="width:100%">
                 <thead>
                     <tr>
-                        <th data-key="th_song">Song</th>
-                        <th data-key="th_genre">Genre</th>
-                        <th data-key="th_music">Music</th>
-                        <th data-key="th_lyrics">Lyrics</th>
-                        <th data-key="th_orig">Orig.</th>
-                        <th data-key="th_instr">Instr.</th>
-                        <th data-key="th_price">Price</th>
-                        <th data-key="th_status">Status</th>
-                        <th data-key="th_writer">Writer</th>
-                        <th>ID</th>
-                        <th>🛒</th>
+                        <th data-key="th_song">Song</th><th data-key="th_genre">Genre</th><th data-key="th_music">Music</th>
+                        <th data-key="th_lyrics">Lyrics</th><th data-key="th_orig">Orig.</th><th data-key="th_instr">Instr.</th>
+                        <th data-key="th_price">Price</th><th data-key="th_status">Status</th><th data-key="th_writer">Writer</th>
+                        <th>ID</th><th>🛒</th>
                     </tr>
                 </thead>
             </table>
         </div>
-
         <div id="cardContainer"></div>
     </div>
 
@@ -139,59 +125,51 @@
         }
     };
 
-    let currentLang = 'en';
-    let globalData = [];
-    let selectedSongs = [];
-    let selectedInstr = [];
-    const userRepo = "nesritellioglu-lgtm"; 
-
-    function toggleTheme() {
-        const b = $('body');
-        b.attr('data-theme', b.attr('data-theme') === 'dark' ? 'light' : 'dark');
-    }
-
-    function toggleLang() {
-        currentLang = currentLang === 'en' ? 'tr' : 'en';
-        $('#langDisplay').text(currentLang.toUpperCase());
-        updateUIStrings();
-    }
-
-    function updateUIStrings() {
-        $('[data-key]').each(function() {
-            const key = $(this).data('key');
-            $(this).text(LANGS[currentLang][key]);
-        });
-        if ($.fn.DataTable.isDataTable('#anaTablo')) renderTable();
-        renderCards();
-    }
+    let currentLang = 'en', globalData = [], selectedSongs = [], selectedInstr = [];
+    const userRepo = "nesritellioglu-lgtm";
 
     function getRainbow(val) {
-        let v = parseInt(val);
-        let idx = isNaN(v) ? 0 : Math.min(Math.max(v, 0), RAINBOW.length - 1);
+        let v = parseInt(val), idx = isNaN(v) ? 0 : Math.min(Math.max(v, 0), RAINBOW.length - 1);
         return `background:${RAINBOW[idx][0]}; color:${RAINBOW[idx][1]};`;
     }
 
+    // TEMA VE DİL FONKSİYONLARI
+    function toggleTheme() { $('body').attr('data-theme', $('body').attr('data-theme') === 'dark' ? 'light' : 'dark'); }
+    function toggleLang() { currentLang = currentLang === 'en' ? 'tr' : 'en'; $('#langDisplay').text(currentLang.toUpperCase()); updateUI(); }
+
+    function updateUI() {
+        $('[data-key]').each(function() { $(this).text(LANGS[currentLang][$(this).data('key')]); });
+        renderTable(); renderCards();
+    }
+
     async function init() {
-        const res = await fetch(`https://api.github.com/repos/${userRepo}/muzik-arsivi/contents/?t=${Date.now()}`);
-        const files = await res.json();
-        for (let f of files) {
-            if (f.name.toUpperCase().includes("JSON") && (f.name.endsWith(".txt") || f.name.endsWith(".json"))) {
-                const c = await fetch(f.download_url);
-                const d = await c.json();
-                if (d.songs) globalData = globalData.concat(d.songs);
+        try {
+            const res = await fetch(`https://api.github.com/repos/${userRepo}/muzik-arsivi/contents/?t=${Date.now()}`);
+            const files = await res.json();
+            for (let f of files) {
+                if (f.name.toUpperCase().includes("JSON") && (f.name.endsWith(".txt") || f.name.endsWith(".json"))) {
+                    const c = await fetch(f.download_url);
+                    const d = await c.json();
+                    if (d.songs) globalData = globalData.concat(d.songs);
+                }
             }
-        }
-        
-        let allIns = [...new Set(globalData.flatMap(s => s.instruments))].sort();
-        allIns.forEach(i => $('#instrContainer').append(`<span class="instr-tag" onclick="toggleInstr('${i}', this)">${i}</span>`));
-        [...new Set(globalData.map(s => s.genre))].sort().forEach(g => $('#genreFilter').append(`<option value="${g}">${g}</option>`));
-        
-        updateUIStrings();
+            
+            // Filtreleri bir kez hazırla
+            let allIns = [...new Set(globalData.flatMap(s => s.instruments))].sort();
+            allIns.forEach(i => $('#instrContainer').append(`<span class="instr-tag" onclick="toggleInstr('${i}', this)">${i}</span>`));
+            [...new Set(globalData.map(s => s.genre))].sort().forEach(g => $('#genreFilter').append(`<option value="${g}">${g}</option>`));
+            
+            $('#s-total').text(globalData.length);
+            $('#s-hit').text(globalData.filter(s => s.isHit).length);
+
+            updateUI(); // Her şeyi çiz
+        } catch (e) { console.error("Veri yükleme hatası:", e); }
     }
 
     function renderTable() {
+        if ($.fn.DataTable.isDataTable('#anaTablo')) $('#anaTablo').DataTable().destroy();
         $('#anaTablo').DataTable({
-            data: globalData, destroy: true, pageLength: 15,
+            data: globalData,
             columns: [
                 { data: "name", render: d => `<b>${d}</b>` },
                 { data: "genre" },
@@ -201,38 +179,34 @@
                 { data: "instruments", render: d => d.map(i => `<small class="instr-tag" style="cursor:default">${i}</small>`).join('') },
                 { data: "price", render: d => `<b style="color:var(--primary)">${d}M</b>` },
                 { data: "isHit", render: d => d ? '<span class="hit-badge">HIT</span>' : 'N' },
-                { data: "writer" },
-                { data: "id" },
+                { data: "writer" }, { data: "id" },
                 { data: null, orderable: false, render: (d, t, r) => `<button onclick="addToCart('${r.id}')" style="cursor:pointer; background:var(--primary); border:none; color:white; border-radius:4px; padding:4px 8px;">+</button>` }
             ],
             language: { url: currentLang === 'tr' ? "//cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json" : "" },
-            order: [[9, "desc"]]
+            order: [[9, "desc"]],
+            pageLength: 15
         });
     }
 
     function renderCards() {
         const container = $('#cardContainer').empty();
         globalData.forEach(s => {
-            const card = $(`
+            container.append(`
                 <div class="song-card" data-id="${s.id}">
-                    <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8;">
-                        <span>#${s.id}</span><span>${s.writer}</span>
-                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8;"><span>#${s.id}</span><span>${s.writer}</span></div>
                     <h4 style="margin:5px 0;">${s.name}</h4>
                     <div style="font-size:11px;">🏷️ ${s.genre}</div>
-                    <div style="display:flex; gap:5px; margin:10px 0;">
+                    <div style="display:flex; gap:5px; margin:5px 0;">
                         <span class="score-box" style="${getRainbow(s.musicQuality)}">${s.musicQuality}</span>
                         <span class="score-box" style="${getRainbow(s.lyricsQuality)}">${s.lyricsQuality}</span>
                         <span class="score-box" style="${getRainbow(s.originality)}">${s.originality}</span>
                     </div>
-                    <div class="instr-list">${s.instruments.map(i => `<span class="instr-tag" style="cursor:default">${i}</span>`).join('')}</div>
+                    <div>${s.instruments.map(i => `<span class="instr-tag" style="cursor:default">${i}</span>`).join('')}</div>
                     <div style="margin-top:auto; display:flex; justify-content:space-between; align-items:center; pt:10px; border-top:1px solid var(--border);">
                         <b style="font-size:18px; color:var(--primary)">${s.price}M</b>
                         <button onclick="addToCart('${s.id}')" style="background:var(--success); color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">Add</button>
                     </div>
-                </div>
-            `);
-            container.append(card);
+                </div>`);
         });
     }
 
@@ -241,35 +215,29 @@
         selectedInstr = $('.instr-tag.selected').map((i, e) => $(e).text()).get();
         const regex = selectedInstr.map(i => `(?=.*${i})`).join('');
         $('#anaTablo').DataTable().column(5).search(regex, true, false).draw();
-        applyCardFilters();
+        applyFilters();
     }
 
     function addToCart(id) {
-        const song = globalData.find(s => s.id == id);
-        if (song && !selectedSongs.find(s => s.id == id)) {
-            selectedSongs.push(song);
-            updateCart();
-        }
+        const s = globalData.find(x => x.id == id);
+        if (s && !selectedSongs.find(x => x.id == id)) { selectedSongs.push(s); updateCart(); }
     }
 
     function updateCart() {
         $('#cartCount').text(selectedSongs.length);
         const list = $('#cartItems').empty();
         selectedSongs.forEach(s => {
-            list.append(`<li class="cart-item"><span>${s.name}</span> <span onclick="removeFromCart('${s.id}')" style="color:white; cursor:pointer; font-weight:bold;">×</span></li>`);
+            list.append(`<li class="cart-item"><span>${s.name}</span> <span onclick="removeFromCart('${s.id}')" style="cursor:pointer; font-weight:bold;">×</span></li>`);
         });
     }
 
-    function removeFromCart(id) {
-        selectedSongs = selectedSongs.filter(s => s.id != id);
-        updateCart();
-    }
+    function removeFromCart(id) { selectedSongs = selectedSongs.filter(s => s.id != id); updateCart(); }
 
     function copyCart() {
         if (selectedSongs.length === 0) return alert(LANGS[currentLang].cart_empty);
-        let msg = LANGS[currentLang].msg_head + ":\n\n";
+        let msg = LANGS[currentLang].msg_head + ":\n"; // Başlık ve alt satır
         selectedSongs.forEach(s => {
-            msg += `🔹 [songid=${s.id} name=${s.name}] (${LANGS[currentLang].msg_writer}: ${s.writer} | ${LANGS[currentLang].msg_price}: ${s.price}M)\n`;
+            msg += `🔹 [songid=${s.id} name=${s.name}] ${s.genre} ${s.musicQuality} ${s.lyricsQuality} ${s.originality} (${LANGS[currentLang].msg_writer}: ${s.writer} | ${LANGS[currentLang].msg_price}: ${s.price}M)\n`;
         });
         navigator.clipboard.writeText(msg).then(() => alert(LANGS[currentLang].msg_copied));
     }
@@ -280,24 +248,20 @@
         else { $('#tableWrapper').hide(); $('#cardContainer').css('display', 'grid'); $('#btnCards').addClass('active'); }
     }
 
-    function applyCardFilters() {
-        const genre = $('#genreFilter').val();
-        const hit = $('#hitFilter').is(':checked');
+    function applyFilters() {
+        const g = $('#genreFilter').val(), h = $('#hitFilter').is(':checked');
         $('.song-card').each(function() {
-            const song = globalData.find(s => s.id == $(this).data('id'));
-            let show = true;
-            if (genre && song.genre !== genre) show = false;
-            if (hit && !song.isHit) show = false;
-            if (selectedInstr.length > 0 && !selectedInstr.every(i => song.instruments.includes(i))) show = false;
+            const s = globalData.find(x => x.id == $(this).data('id'));
+            let show = (!g || s.genre === g) && (!h || s.isHit) && (selectedInstr.length === 0 || selectedInstr.every(i => s.instruments.includes(i)));
             $(this).toggle(show);
         });
     }
 
     $('#genreFilter, #hitFilter').on('change', () => {
-        const table = $('#anaTablo').DataTable();
-        table.column(1).search($('#genreFilter').val()).draw();
-        table.column(7).search($('#hitFilter').is(':checked') ? 'HIT' : '').draw();
-        applyCardFilters();
+        const t = $('#anaTablo').DataTable();
+        t.column(1).search($('#genreFilter').val()).draw();
+        t.column(7).search($('#hitFilter').is(':checked') ? 'HIT' : '').draw();
+        applyFilters();
     });
 
     init();
