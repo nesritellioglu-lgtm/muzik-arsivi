@@ -45,7 +45,7 @@
         .instr-tag.selected { background: var(--primary); color: white; }
     </style>
 </head>
-<body data-theme="dark">
+<body data-theme="light">
 
     <div class="sidebar">
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -54,8 +54,8 @@
         </div>
         
         <div style="display:flex; gap:5px;">
-            <button class="server-btn" style="border:1px solid var(--border);" onclick="toggleTheme()">🌓 Theme</button>
-            <button class="server-btn" style="border:1px solid var(--border);" onclick="toggleLang()">🌍 <span id="langDisplay">EN</span></button>
+            <button class="server-btn" style="border:1px solid var(--border);" onclick="toggleTheme()" data-key="theme">🌓 Tema</button>
+            <button class="server-btn" style="border:1px solid var(--border);" onclick="toggleLang()">�🇷 TR</button>
         </div>
 
         <div>
@@ -68,28 +68,28 @@
         </div>
 
         <div class="stat-group">
-            <div class="stat-card"><h3 style="font-size:9px; margin:0;">Total</h3><p id="s-total" style="margin:4px 0; font-weight:bold;">0</p></div>
-            <div class="stat-card"><h3 style="font-size:9px; margin:0; color:var(--admin);">HIT</h3><p id="s-hit" style="margin:4px 0; font-weight:bold;">0</p></div>
+            <div class="stat-card"><h3 style="font-size:9px; margin:0;">Toplam</h3><p id="s-total" style="margin:4px 0; font-weight:bold;">0</p></div>
+            <div class="stat-card"><h3 style="font-size:9px; margin:0; color:var(--admin);">VURGU</h3><p id="s-hit" style="margin:4px 0; font-weight:bold;">0</p></div>
         </div>
 
         <div style="background:var(--bg); padding:10px; border-radius:10px; border:1px solid var(--border);">
-            <input type="text" id="searchInput" placeholder="Search song, writer or genre..." style="width:100%; background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:6px; margin-bottom:8px; font-size:12px;">
-            <select id="genreFilter" style="width:100%; background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:4px; font-size:12px;"><option value="">All Genres</option></select>
+            <input type="text" id="searchInput" placeholder="Şarkı, yazar veya tür ara..." style="width:100%; background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:6px; margin-bottom:8px; font-size:12px;">
+            <select id="genreFilter" style="width:100%; background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:4px; font-size:12px;"><option value="">Tüm Türler</option></select>
             
             <div style="display:flex; gap:4px; margin-top:8px;">
                 <label style="display:flex; align-items:center; gap:4px; font-size:10px; cursor:pointer;">
                     <input type="checkbox" id="hitOnly" style="cursor:pointer;">
-                    <span data-key="hit_only">Hit Only</span>
+                    <span data-key="hit_only">Sadece Hit</span>
                 </label>
             </div>
             
             <div style="margin-top:8px;">
-                <span style="font-size:10px; font-weight:bold;" data-key="min_quality">Min Quality:</span>
+                <span style="font-size:10px; font-weight:bold;" data-key="min_quality">Min Kalite:</span>
                 <div style="display:flex; gap:4px; margin-top:4px;">
                     <input type="number" id="minMusic" min="21" max="26" placeholder="M" style="width:50px; background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:3px; padding:2px; font-size:10px; text-align:center;">
                     <input type="number" id="minLyrics" min="21" max="26" placeholder="L" style="width:50px; background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:3px; padding:2px; font-size:10px; text-align:center;">
-                    <button onclick="applyFilters()" style="flex:1; background:var(--primary); color:white; border:none; border-radius:3px; padding:2px 6px; font-size:9px; cursor:pointer;">Apply</button>
-                    <button onclick="resetFilters()" style="flex:1; background:var(--admin); color:white; border:none; border-radius:3px; padding:2px 6px; font-size:9px; cursor:pointer;">Reset</button>
+                    <button onclick="applyFilters()" style="flex:1; background:var(--primary); color:white; border:none; border-radius:3px; padding:2px 6px; font-size:9px; cursor:pointer;" data-key="apply">Uygula</button>
+                    <button onclick="resetFilters()" style="flex:1; background:var(--admin); color:white; border:none; border-radius:3px; padding:2px 6px; font-size:9px; cursor:pointer;" data-key="reset">Sıfırla</button>
                 </div>
             </div>
             
@@ -97,13 +97,13 @@
         </div>
 
         <div class="cart-box">
-            <h4 style="margin:0;"><span data-key="cart_title">Selection</span> (<span id="cartCount">0</span>)</h4>
+            <h4 style="margin:0;"><span data-key="cart_title">Seçimler</span> (<span id="cartCount">0</span>)</h4>
             <ul id="cartItems" style="padding:0; list-style:none; font-size:11px; margin:10px 0; max-height: 120px; overflow-y:auto;"></ul>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span style="font-size:11px; font-weight:bold;" data-key="total_price">Total Price:</span>
+                <span style="font-size:11px; font-weight:bold;" data-key="total_price">Toplam Ücret:</span>
                 <span id="totalPrice" style="font-size:11px; font-weight:bold; color:#ffd700;">0M</span>
             </div>
-            <button onclick="purchaseCart()" style="background:var(--success); color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; width:100%; font-weight:bold;">Satın Al / Purchase</button>
+            <button onclick="purchaseCart()" style="background:var(--success); color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; width:100%; font-weight:bold;" data-key="purchase">Satın Al</button>
         </div>
     </div>
 
@@ -117,14 +117,14 @@
         </div>
 
         <div style="display:flex; gap:10px; margin-bottom:15px;">
-            <button id="btnTable" class="server-btn active" style="flex:none; width:80px;" onclick="toggleView('table')">📋 Table</button>
-            <button id="btnCards" class="server-btn" style="flex:none; width:80px;" onclick="toggleView('cards')">🎴 Cards</button>
+            <button id="btnTable" class="server-btn active" style="flex:none; width:80px;" onclick="toggleView('table')" data-key="table">📋 Tablo</button>
+            <button id="btnCards" class="server-btn" style="flex:none; width:80px;" onclick="toggleView('cards')" data-key="cards">🎴 Kartlar</button>
         </div>
 
         <div id="tableWrapper">
             <table id="anaTablo" class="display" style="width:100%">
                 <thead>
-                    <tr><th data-key="song">Song</th><th data-key="genre">Genre</th><th data-key="music">M</th><th data-key="lyrics">L</th><th data-key="originality">O</th><th data-key="instruments">Instr.</th><th data-key="price">Price</th><th data-key="writer">Writer</th><th data-key="id">ID</th><th>🛒</th></tr>
+                    <tr><th data-key="song">Şarkı</th><th data-key="genre">Tür</th><th data-key="music">M</th><th data-key="lyrics">L</th><th data-key="originality">O</th><th data-key="instruments">Instr.</th><th data-key="price">Fiyat</th><th data-key="writer">Yazar</th><th data-key="id">ID</th><th>🛒</th></tr>
                 </thead>
             </table>
         </div>
@@ -133,11 +133,11 @@
 
     <script>
     const translations = {
-        tr: { cart_title: 'Seçimler', total: 'Toplam', hit: 'VURGU', all_genres: 'Tüm Türler', purchase: 'Satın Al', purchase_confirm: 'Siparişiniz panoya kopyalandı. Satıcıya mesaj atmak ister misiniz?', yes: 'Tamam', no: 'İptal', total_price: 'Toplam Ücret:', song: 'Şarkı', genre: 'Tür', music: 'Müzik', lyrics: 'Sözler', originality: 'Özgünlük', instruments: 'Enstrumanlar', price: 'Fiyat', writer: 'Yazar', id: 'ID', hit_only: 'Sadece Hit', min_quality: 'Min Kalite', search_placeholder: 'Şarkı, yazar veya tür ara...', reset: 'Sıfırla' },
-        en: { cart_title: 'Selection', total: 'Total', hit: 'HIT', all_genres: 'All Genres', purchase: 'Purchase', purchase_confirm: 'Your order has been copied to clipboard. Would you like to message seller?', yes: 'OK', no: 'Cancel', total_price: 'Total Price:', song: 'Song', genre: 'Genre', music: 'Music', lyrics: 'Lyrics', originality: 'Originality', instruments: 'Instr.', price: 'Price', writer: 'Writer', id: 'ID', hit_only: 'Hit Only', min_quality: 'Min Quality', search_placeholder: 'Search song, writer or genre...', reset: 'Reset' }
+        tr: { cart_title: 'Seçimler', total: 'Toplam', hit: 'VURGU', all_genres: 'Tüm Türler', purchase: 'Satın Al', purchase_confirm: 'Siparişiniz panoya kopyalandı. Satıcıya mesaj atmak ister misiniz?', yes: 'Tamam', no: 'İptal', total_price: 'Toplam Ücret:', song: 'Şarkı', genre: 'Tür', music: 'Müzik', lyrics: 'Sözler', originality: 'Özgünlük', instruments: 'Enstrumanlar', price: 'Fiyat', writer: 'Yazar', id: 'ID', hit_only: 'Sadece Hit', min_quality: 'Min Kalite', search_placeholder: 'Şarkı, yazar veya tür ara...', reset: 'Sıfırla', table: 'Tablo', cards: 'Kartlar', add: 'Ekle', apply: 'Uygula', theme: 'Tema' },
+        en: { cart_title: 'Selection', total: 'Total', hit: 'HIT', all_genres: 'All Genres', purchase: 'Purchase', purchase_confirm: 'Your order has been copied to clipboard. Would you like to message seller?', yes: 'OK', no: 'Cancel', total_price: 'Total Price:', song: 'Song', genre: 'Genre', music: 'Music', lyrics: 'Lyrics', originality: 'Originality', instruments: 'Instr.', price: 'Price', writer: 'Writer', id: 'ID', hit_only: 'Hit Only', min_quality: 'Min Quality', search_placeholder: 'Search song, writer or genre...', reset: 'Reset', table: 'Table', cards: 'Cards', add: 'Add', apply: 'Apply', theme: 'Theme' }
     };
     const RAINBOW = [['#ff0000','#fff'],['#ff0036','#fff'],['#ff006c','#fff'],['#ff00a2','#fff'],['#ff00d8','#fff'],['#f000ff','#fff'],['#ba00ff','#fff'],['#8400ff','#fff'],['#4e00ff','#fff'],['#1900ff','#fff'],['#001dff','#fff'],['#0053ff','#fff'],['#0089ff','#fff'],['#00bfff','#fff'],['#00f5ff','#000'],['#00ffd3','#000'],['#00ff9d','#000'],['#00ff67','#000'],['#00ff31','#000'],['#05ff00','#000'],['#3bff00','#000'],['#71ff00','#000'],['#a7ff00','#000'],['#ddff00','#000'],['#ffeb00','#000'],['#ffb500','#000'],['#ff8000','#000']];
-    let currentLang = 'en', globalData = [], selectedSongs = [], selectedInstr = [], activeServer = 73;
+    let currentLang = 'tr', globalData = [], selectedSongs = [], selectedInstr = [], activeServer = 73;
     const user = "nesritellioglu-lgtm", repo = "muzik-arsivi", charId = "780798";
 
     function getRainbow(v) { let idx = Math.min(Math.max(parseInt(v)||0,0),26); return `background:${RAINBOW[idx][0]}; color:${RAINBOW[idx][1]};`; }
@@ -145,7 +145,12 @@
     function toggleTheme() { $('body').attr('data-theme', $('body').attr('data-theme')==='dark'?'light':'dark'); }
     function toggleLang() { 
         currentLang = currentLang==='en'?'tr':'en'; 
-        $('#langDisplay').text(currentLang.toUpperCase()); 
+        const langBtn = event.target;
+        if (currentLang === 'tr') {
+            langBtn.textContent = '🇹🇷 TR';
+        } else {
+            langBtn.textContent = '🇺🇸 EN';
+        }
         updateTranslations(); 
         renderAll(); 
     }
@@ -249,10 +254,11 @@
                     <span class="score-box" style="${getRainbow(s.lyricsQuality)}">${s.lyricsQuality}</span>
                     <span class="score-box" style="${getRainbow(s.originality)}">${s.originality}</span>
                 </div>
-                <div style="font-size:10px;">🏷️ ${s.genre}</div>
+                <div style="font-size:10px; margin-top:4px;">🏷️ ${s.genre}</div>
+                <div style="font-size:9px; color:var(--text); margin-top:2px;">🎸 ${s.instruments ? s.instruments.join(', ') : ''}</div>
                 <div style="margin-top:auto; display:flex; justify-content:space-between; align-items:center;">
                     <b style="color:var(--primary)">${s.price}M</b>
-                    <button onclick="addToCart('${s.id}')" style="background:var(--success); color:white; border:none; border-radius:5px; padding:4px 8px; cursor:pointer;">Add</button>
+                    <button onclick="addToCart('${s.id}')" style="background:var(--success); color:white; border:none; border-radius:5px; padding:4px 8px; cursor:pointer;" data-key="add">Ekle</button>
                 </div>
             </div>`);
         });
@@ -360,7 +366,32 @@
             // JSON'ı parse et ve doğrula
             let newData;
             try {
-                newData = JSON.parse(jsonText);
+                // JSON string'i temizle
+                let cleanJson = jsonText;
+                
+                // Eğer string içindeki format farklıysa
+                if (jsonText.includes('"songs":[')) {
+                    // Doğrudan songs array'ını al
+                    const match = jsonText.match(/"songs":\[(.*?)\]/);
+                    if (match) {
+                        cleanJson = match[0];
+                    }
+                }
+                
+                // JSON'ı parse et
+                const parsed = JSON.parse(cleanJson);
+                
+                // Farklı formatları kontrol et
+                if (parsed.songs && Array.isArray(parsed.songs)) {
+                    newData = parsed.songs;
+                } else if (Array.isArray(parsed)) {
+                    newData = parsed;
+                } else if (parsed.songs) {
+                    newData = parsed.songs;
+                } else {
+                    throw new Error('Invalid JSON structure - expected songs array');
+                }
+                
                 if(!Array.isArray(newData)) newData = [newData];
             } catch(e) {
                 throw new Error("Invalid JSON format: " + e.message);
@@ -369,10 +400,21 @@
             // Yeni şarkıları ekle
             newData.forEach(s => { 
                 if(!currentContent.songs.find(ex => ex.id == s.id)) {
-                    // Gerekli alanları kontrol et
-                    if(!s.id || !s.name || !s.genre) {
-                        throw new Error(`Missing required fields in song: ${JSON.stringify(s)}`);
+                    // Gerekli alanları kontrol et - daha esnek
+                    if(!s.id || !s.name) {
+                        console.warn('Skipping invalid song:', s);
+                        return; // Skip invalid songs
                     }
+                    // Eksik alanları varsayılan değerlerle doldur
+                    if (!s.genre) s.genre = 'Unknown';
+                    if (!s.musicQuality) s.musicQuality = 21;
+                    if (!s.lyricsQuality) s.lyricsQuality = 21;
+                    if (!s.originality) s.originality = 21;
+                    if (!s.instruments) s.instruments = [];
+                    if (!s.writer) s.writer = 'Unknown';
+                    if (!s.price) s.price = 0;
+                    if (!s.isHit) s.isHit = false;
+                    
                     currentContent.songs.push(s); 
                 }
             });
