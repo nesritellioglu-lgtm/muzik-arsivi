@@ -73,13 +73,36 @@
         </div>
 
         <div style="background:var(--bg); padding:10px; border-radius:10px; border:1px solid var(--border);">
-            <select id="genreFilter" style="width:100%; background:none; color:var(--text); border:none; font-size:12px;"><option value="">All Genres</option></select>
+            <input type="text" id="searchInput" placeholder="Search song, writer or genre..." style="width:100%; background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:6px; margin-bottom:8px; font-size:12px;">
+            <select id="genreFilter" style="width:100%; background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:4px; font-size:12px;"><option value="">All Genres</option></select>
+            
+            <div style="display:flex; gap:4px; margin-top:8px;">
+                <label style="display:flex; align-items:center; gap:4px; font-size:10px; cursor:pointer;">
+                    <input type="checkbox" id="hitOnly" style="cursor:pointer;">
+                    <span data-key="hit_only">Hit Only</span>
+                </label>
+            </div>
+            
+            <div style="margin-top:8px;">
+                <span style="font-size:10px; font-weight:bold;" data-key="min_quality">Min Quality:</span>
+                <div style="display:flex; gap:4px; margin-top:4px;">
+                    <input type="number" id="minMusic" min="21" max="26" placeholder="M" style="width:50px; background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:3px; padding:2px; font-size:10px; text-align:center;">
+                    <input type="number" id="minLyrics" min="21" max="26" placeholder="L" style="width:50px; background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:3px; padding:2px; font-size:10px; text-align:center;">
+                    <input type="number" id="minOriginality" min="21" max="26" placeholder="O" style="width:50px; background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:3px; padding:2px; font-size:10px; text-align:center;">
+                    <button onclick="applyFilters()" style="flex:1; background:var(--primary); color:white; border:none; border-radius:3px; padding:2px 6px; font-size:9px; cursor:pointer;">Apply</button>
+                </div>
+            </div>
+            
             <div id="instrContainer" style="margin-top:10px;"></div>
         </div>
 
         <div class="cart-box">
             <h4 style="margin:0;"><span data-key="cart_title">Selection</span> (<span id="cartCount">0</span>)</h4>
             <ul id="cartItems" style="padding:0; list-style:none; font-size:11px; margin:10px 0; max-height: 120px; overflow-y:auto;"></ul>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="font-size:11px; font-weight:bold;" data-key="total_price">Total Price:</span>
+                <span id="totalPrice" style="font-size:11px; font-weight:bold; color:#ffd700;">0M</span>
+            </div>
             <button onclick="purchaseCart()" style="background:var(--success); color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; width:100%; font-weight:bold;">Satın Al / Purchase</button>
         </div>
     </div>
@@ -101,7 +124,7 @@
         <div id="tableWrapper">
             <table id="anaTablo" class="display" style="width:100%">
                 <thead>
-                    <tr><th>Song</th><th>Genre</th><th>M</th><th>L</th><th>O</th><th>Instr.</th><th>Price</th><th>Writer</th><th>ID</th><th>🛒</th></tr>
+                    <tr><th data-key="song">Song</th><th data-key="genre">Genre</th><th data-key="music">M</th><th data-key="lyrics">L</th><th data-key="originality">O</th><th data-key="instruments">Instr.</th><th data-key="price">Price</th><th data-key="writer">Writer</th><th data-key="id">ID</th><th>🛒</th></tr>
                 </thead>
             </table>
         </div>
@@ -110,8 +133,8 @@
 
     <script>
     const translations = {
-        tr: { cart_title: 'Seçimler', total: 'Toplam', hit: 'VURGU', all_genres: 'Tüm Türler', purchase: 'Satın Al', purchase_confirm: 'Siparişiniz panoya kopyalandı. Satıcıya mesaj atmak ister misiniz?', yes: 'Tamam', no: 'İptal' },
-        en: { cart_title: 'Selection', total: 'Total', hit: 'HIT', all_genres: 'All Genres', purchase: 'Purchase', purchase_confirm: 'Your order has been copied to clipboard. Would you like to message the seller?', yes: 'OK', no: 'Cancel' }
+        tr: { cart_title: 'Seçimler', total: 'Toplam', hit: 'VURGU', all_genres: 'Tüm Türler', purchase: 'Satın Al', purchase_confirm: 'Siparişiniz panoya kopyalandı. Satıcıya mesaj atmak ister misiniz?', yes: 'Tamam', no: 'İptal', total_price: 'Toplam Ücret:', song: 'Şarkı', genre: 'Tür', music: 'Müzik', lyrics: 'Sözler', originality: 'Özgünlük', instruments: 'Enstrumanlar', price: 'Fiyat', writer: 'Yazar', id: 'ID', hit_only: 'Sadece Hit', min_quality: 'Min Kalite', search_placeholder: 'Şarkı, yazar veya tür ara...' },
+        en: { cart_title: 'Selection', total: 'Total', hit: 'HIT', all_genres: 'All Genres', purchase: 'Purchase', purchase_confirm: 'Your order has been copied to clipboard. Would you like to message the seller?', yes: 'OK', no: 'Cancel', total_price: 'Total Price:', song: 'Song', genre: 'Genre', music: 'Music', lyrics: 'Lyrics', originality: 'Originality', instruments: 'Instr.', price: 'Price', writer: 'Writer', id: 'ID', hit_only: 'Hit Only', min_quality: 'Min Quality', search_placeholder: 'Search song, writer or genre...' }
     };
     const RAINBOW = [['#ff0000','#fff'],['#ff0036','#fff'],['#ff006c','#fff'],['#ff00a2','#fff'],['#ff00d8','#fff'],['#f000ff','#fff'],['#ba00ff','#fff'],['#8400ff','#fff'],['#4e00ff','#fff'],['#1900ff','#fff'],['#001dff','#fff'],['#0053ff','#fff'],['#0089ff','#fff'],['#00bfff','#fff'],['#00f5ff','#000'],['#00ffd3','#000'],['#00ff9d','#000'],['#00ff67','#000'],['#00ff31','#000'],['#05ff00','#000'],['#3bff00','#000'],['#71ff00','#000'],['#a7ff00','#000'],['#ddff00','#000'],['#ffeb00','#000'],['#ffb500','#000'],['#ff8000','#000']];
     let currentLang = 'en', globalData = [], selectedSongs = [], selectedInstr = [], activeServer = 73;
@@ -135,6 +158,8 @@
         });
         $('#genreFilter').find('option:first').text(t.all_genres);
         $('.cart-box button').text(t.purchase);
+        $('#searchInput').attr('placeholder', t.search_placeholder);
+        renderAll(); // Tabloyu yenile
     }
 
     async function init() {
@@ -169,8 +194,36 @@
 
     function renderTable() {
         if ($.fn.DataTable.isDataTable('#anaTablo')) $('#anaTablo').DataTable().destroy();
+        
+        let filteredData = globalData;
+        
+        // Hit only filtresi
+        if ($('#hitOnly').is(':checked')) {
+            filteredData = filteredData.filter(s => s.isHit);
+        }
+        
+        // Min kalite filtresi
+        const minMusic = parseInt($('#minMusic').val()) || 0;
+        const minLyrics = parseInt($('#minLyrics').val()) || 0;
+        const minOriginality = parseInt($('#minOriginality').val()) || 0;
+        
+        if (minMusic > 0) filteredData = filteredData.filter(s => s.musicQuality >= minMusic);
+        if (minLyrics > 0) filteredData = filteredData.filter(s => s.lyricsQuality >= minLyrics);
+        if (minOriginality > 0) filteredData = filteredData.filter(s => s.originality >= minOriginality);
+        
+        // Search filtresi
+        const searchTerm = $('#searchInput').val().toLowerCase();
+        if (searchTerm) {
+            filteredData = filteredData.filter(s => 
+                s.name.toLowerCase().includes(searchTerm) ||
+                s.writer.toLowerCase().includes(searchTerm) ||
+                s.genre.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        const t = translations[currentLang];
         $('#anaTablo').DataTable({
-            data: globalData,
+            data: filteredData,
             columns: [
                 { data: "name", render: d => `<b>${d}</b>` },
                 { data: "genre" },
@@ -216,6 +269,10 @@
         $('#cartCount').text(selectedSongs.length);
         const list = $('#cartItems').empty();
         selectedSongs.forEach(s => list.append(`<li style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>${s.name}</span> <span onclick="removeFromCart('${s.id}')" style="cursor:pointer; color:red;">×</span></li>`));
+        
+        // Toplam ücret hesapla
+        const totalPrice = selectedSongs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
+        $('#totalPrice').text(totalPrice + 'M');
     }
 
     function removeFromCart(id) { selectedSongs = selectedSongs.filter(s => s.id != id); updateCart(); }
@@ -226,7 +283,8 @@
         selectedSongs.forEach(s => {
             msg += `🔹 [songid=${s.id} name=${s.name}] ${s.genre} ${s.musicQuality} ${s.lyricsQuality} ${s.originality} (${currentLang==='tr'?'Yazar':'Writer'}: ${s.writer} | ${currentLang==='tr'?'Fiyat':'Price'}: ${s.price}M)\n`;
         });
-        msg += `\nhttps://${activeServer}.popmundo.com/World/Popmundo.aspx/Conversations/Conversation/${charId}`;
+        const totalPrice = selectedSongs.reduce((sum, s) => sum + (parseInt(s.price) || 0), 0);
+        msg += `\n${currentLang==='tr'?'Toplam Ücret':'Total Price'}: ${totalPrice}M`;
         navigator.clipboard.writeText(msg);
         return msg;
     }
@@ -254,7 +312,18 @@
         $('#anaTablo').DataTable().column(5).search(regex, true, false).draw();
     }
 
-    $('#genreFilter').on('change', function() { $('#anaTablo').DataTable().column(1).search(this.value).draw(); });
+    function applyFilters() {
+        renderTable();
+        renderCards();
+    }
+    
+    $('#searchInput').on('input', function() {
+        clearTimeout(window.searchTimeout);
+        window.searchTimeout = setTimeout(applyFilters, 300);
+    });
+    
+    $('#hitOnly').on('change', applyFilters);
+    $('#genreFilter').on('change', function() { applyFilters(); });
 
     // DATABASE PUSH (Senin parse ettiğin JSON'u GitHub'a atar)
     async function pushToDB() {
