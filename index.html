@@ -115,9 +115,11 @@
             <input type="password" id="ghToken" placeholder="GitHub Token" style="width:100%; padding:8px; margin-bottom:10px; border-radius:5px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
             <div style="margin-bottom:10px;">
                 <button onclick="pasteFromClipboard()" style="width:100%; padding:8px; background:var(--success); color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer; margin-bottom:5px;">📋 Paste from SongMaster</button>
-                <button onclick="clearJson()" style="width:100%; padding:6px; background:var(--admin); color:white; border:none; border-radius:5px; font-size:11px; cursor:pointer;">🗑️ Clear JSON</button>
+                <button onclick="importFromCSV()" style="width:100%; padding:8px; background:var(--primary); color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer; margin-bottom:5px;">📁 Import CSV</button>
+                <button onclick="exportToCSV()" style="width:100%; padding:8px; background:var(--primary); color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer; margin-bottom:5px;">💾 Export CSV</button>
+                <button onclick="clearJson()" style="width:100%; padding:6px; background:var(--admin); color:white; border:none; border-radius:5px; font-size:11px; cursor:pointer;">🗑️ Clear Data</button>
             </div>
-            <textarea id="rawJson" placeholder="Yapıştır / Paste JSON here..."></textarea>
+            <textarea id="rawJson" placeholder="CSV veya JSON verisini buraya yapıştırın..."></textarea>
             <button onclick="pushToDB()" style="margin-top:10px; width:100%; padding:10px; background:var(--admin); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">DATABASE GÜNCELLE / SYNC</button>
             <div id="syncLog" style="font-size:10px; margin-top:5px;"></div>
         </div>
@@ -419,11 +421,11 @@
         applyFilters(); 
     });
 
-    // DATABASE PUSH (Senin parse ettiğin JSON'u GitHub'a atar)
+    // DATABASE PUSH (Senin parse ettiğin JSON/CSV'u GitHub'a atar)
     async function pushToDB() {
         const token = $('#ghToken').val();
-        const jsonText = $('#rawJson').val().trim();
-        if(!token || !jsonText) return alert("Missing Token or JSON!");
+        const rawData = $('#rawJson').val().trim();
+        if(!token || !rawData) return alert("Missing Token or Data!");
         localStorage.setItem('gh_token', token);
         
         $('#syncLog').text("Updating...").css("color", "orange");
@@ -441,94 +443,83 @@
             } catch(e) {
                 console.log("File not found, creating new...");
             }
-        } catch(e) {
-            console.log("File not found, creating new...");
-        }
             
-        // JSON'ı parse et ve doğrula
-        let newData;
-        try {
-            // JSON string'i temizle ve debug et
-            let cleanJson = jsonText.trim();
-            console.log('Original JSON length:', jsonText.length);
-            console.log('Original JSON preview:', jsonText.substring(0, 200) + '...');
-            console.log('Original JSON end:', jsonText.substring(jsonText.length - 50) + '...');
-                
-            // SongMaster formatı için özel parsing - timestamp ve metadata varsa
-            if (cleanJson.includes('"timestamp"') && cleanJson.includes('"songs":[')) {
-                console.log('Detected SongMaster format with timestamp');
-                // Doğrudan songs array'ını al - daha hassas regex
-                const songsMatch = cleanJson.match(/"songs":\s*(\[[\s\S]*?\])/);
-                if (songsMatch) {
-                    cleanJson = '{"songs":' + songsMatch[1] + '}';
-                    console.log('Extracted songs array:', cleanJson.substring(0, 200) + '...');
+            // Veriyi parse et - CSV veya JSON formatı kontrolü
+            let newData;
+            try {
+                // CSV formatı mı kontrol et
+                if (rawData.includes(',') && rawData.includes('\n') && !rawData.trim().startsWith('{') && !rawData.trim().startsWith('[')) {
+                    console.log('Detected CSV format');
+                    newData = parseCSV(rawData);
                 } else {
-                    throw new Error('Could not extract songs array from SongMaster format');
+                    // JSON formatı - eski kod
+                    let cleanJson = rawData.trim();
+                    console.log('Detected JSON format');
+                    
+                    // SongMaster formatı için özel parsing
+                    if (cleanJson.includes('"timestamp"') && cleanJson.includes('"songs":[')) {
+                        console.log('Detected SongMaster format with timestamp');
+                        const songsMatch = cleanJson.match(/"songs":\s*(\[[\s\S]*?\])/);
+                        if (songsMatch) {
+                            cleanJson = '{"songs":' + songsMatch[1] + '}';
+                        } else {
+                            throw new Error('Could not extract songs array from SongMaster format');
+                        }
+                    } else if (cleanJson.includes('"songs":[')) {
+                        console.log('Detected simple songs array format');
+                        const match = cleanJson.match(/"songs":\s*(\[[\s\S]*?\])/);
+                        if (match) {
+                            cleanJson = match[0];
+                        } else {
+                            throw new Error('Could not extract songs array');
+                        }
+                    } else if (cleanJson.startsWith('[') && cleanJson.endsWith(']')) {
+                        console.log('Detected direct array format');
+                        cleanJson = '{"songs":' + cleanJson + '}';
+                    } else if (cleanJson.startsWith('{') && cleanJson.endsWith('}')) {
+                        console.log('Detected single object format');
+                        cleanJson = '{"songs":[' + cleanJson + ']}';
+                    } else {
+                        console.log('Unknown format, trying direct parse');
+                        cleanJson = '{"songs":' + cleanJson + '}';
+                    }
+                    
+                    // Geçersiz karakterleri temizle
+                    cleanJson = cleanJson.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+                    cleanJson = cleanJson.replace(/[\u2000-\u20FF\u2028-\u202F\u205F-\u206F\u3000-\u30FF\uFE00-\uFEFF\uFF00-\uFFFF]/g, '');
+                    cleanJson = cleanJson.replace(/[\u201C\u201D\u2018\u2019]/g, '"');
+                    cleanJson = cleanJson.replace(/[\u2013\u2014]/g, '-');
+                    cleanJson = cleanJson.replace(/\s+/g, ' ');
+                    cleanJson = cleanJson.replace(/^[\s,]+|[\s,]+$/g, '');
+                    
+                    const parsed = JSON.parse(cleanJson);
+                    
+                    if (parsed.songs && Array.isArray(parsed.songs)) {
+                        newData = parsed.songs;
+                    } else if (Array.isArray(parsed)) {
+                        newData = parsed;
+                    } else if (parsed.songs) {
+                        newData = parsed.songs;
+                    } else {
+                        throw new Error('Invalid JSON structure - expected songs array');
+                    }
+                    
+                    if(!Array.isArray(newData)) newData = [newData];
                 }
-            } else if (cleanJson.includes('"songs":[')) {
-                console.log('Detected simple songs array format');
-                const match = cleanJson.match(/"songs":\s*(\[[\s\S]*?\])/);
-                if (match) {
-                    cleanJson = match[0];
-                    console.log('Extracted songs:', cleanJson.substring(0, 200) + '...');
-                } else {
-                    throw new Error('Could not extract songs array');
-                }
-            } else if (cleanJson.startsWith('[') && cleanJson.endsWith(']')) {
-                console.log('Detected direct array format');
-                cleanJson = '{"songs":' + cleanJson + '}';
-            } else if (cleanJson.startsWith('{') && cleanJson.endsWith('}')) {
-                console.log('Detected single object format');
-                cleanJson = '{"songs":[' + cleanJson + ']}';
-            } else {
-                console.log('Unknown format, trying direct parse');
-                cleanJson = '{"songs":' + cleanJson + '}';
+                
+                console.log('Parsed data count:', newData.length);
+            } catch(e) {
+                console.error('Parse Error:', e);
+                throw new Error("Invalid format: " + e.message + "\n\nTip: CSV veya geçerli JSON formatı kullanın.");
             }
-                
-            // Geçersiz karakterleri temizle - daha agresif
-            cleanJson = cleanJson.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
-            cleanJson = cleanJson.replace(/[\u2000-\u20FF\u2028-\u202F\u205F-\u206F\u3000-\u30FF\uFE00-\uFEFF\uFF00-\uFFFF]/g, '');
-            cleanJson = cleanJson.replace(/[\u201C\u201D\u2018\u2019]/g, '"'); // Smart quotes
-            cleanJson = cleanJson.replace(/[\u2013\u2014]/g, '-'); // Smart dashes
-            cleanJson = cleanJson.replace(/\s+/g, ' '); // Multiple spaces
-                
-            // Başında ve sonunda gereksiz karakterleri temizle
-            cleanJson = cleanJson.replace(/^[\s,]+|[\s,]+$/g, '');
-                
-            console.log('Cleaned JSON:', cleanJson.substring(0, 200) + '...');
-            console.log('Cleaned JSON end:', cleanJson.substring(cleanJson.length - 50) + '...');
-                
-            // JSON'ı parse et
-            const parsed = JSON.parse(cleanJson);
-                
-            // Farklı formatları kontrol et
-            if (parsed.songs && Array.isArray(parsed.songs)) {
-                newData = parsed.songs;
-            } else if (Array.isArray(parsed)) {
-                newData = parsed;
-            } else if (parsed.songs) {
-                newData = parsed.songs;
-            } else {
-                throw new Error('Invalid JSON structure - expected songs array');
-            }
-                
-            if(!Array.isArray(newData)) newData = [newData];
-            console.log('Parsed songs count:', newData.length);
-        } catch(e) {
-            console.error('JSON Parse Error:', e);
-            console.error('Problematic JSON:', jsonText.substring(0, 500));
-            throw new Error("Invalid JSON format: " + e.message + "\n\nTip: Sadece şarkı verilerini yapıştırın, metadata içermeyen JSON formatını kullanın.");
-        }
 
-        try {
             // Yeni şarkıları ekle
-            const currentContent = {songs: []}; // currentContent değişkenini buraya taşıdık
             newData.forEach(s => { 
                 if(!currentContent.songs.find(ex => ex.id == s.id)) {
-                    // Gerekli alanları kontrol et - daha esnek
+                    // Gerekli alanları kontrol et
                     if(!s.id || !s.name) {
                         console.warn('Skipping invalid song:', s);
-                        return; // Skip invalid songs
+                        return;
                     }
                     // Eksik alanları varsayılan değerlerle doldur
                     if (!s.genre) s.genre = 'Unknown';
@@ -547,7 +538,7 @@
             // GitHub'a gönder
             const content = btoa(JSON.stringify(currentContent, null, 2));
             const body = {
-                message: "Auto Sync: New Songs Added",
+                message: "Auto Sync: New Songs Added (CSV/JSON)",
                 content: content
             };
             
@@ -585,6 +576,146 @@
 
     init();
 
+    // CSV Import
+    async function importFromCSV() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.csv';
+        input.onchange = async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            try {
+                const text = await file.text();
+                $('#rawJson').val(text);
+                $('#syncLog').text("📁 CSV dosyası yüklendi!").css("color", "lime");
+            } catch (error) {
+                $('#syncLog').text("❌ CSV okunamadı: " + error.message).css("color", "red");
+            }
+        };
+        input.click();
+    }
+    
+    // CSV Export
+    function exportToCSV() {
+        try {
+            const headers = ['id', 'name', 'genre', 'musicQuality', 'lyricsQuality', 'originality', 'instruments', 'writer', 'price', 'isHit'];
+            let csvContent = headers.join(',') + '\n';
+            
+            globalData.forEach(song => {
+                const row = headers.map(header => {
+                    let value = song[header] || '';
+                    
+                    if (typeof value === 'string') {
+                        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                            value = '"' + value.replace(/"/g, '""') + '"';
+                        }
+                    } else if (Array.isArray(value)) {
+                        value = value.join(';');
+                        if (value.includes(',') || value.includes('"')) {
+                            value = '"' + value.replace(/"/g, '""') + '"';
+                        }
+                    } else if (typeof value === 'boolean') {
+                        value = value ? 'true' : 'false';
+                    }
+                    
+                    return value;
+                }).join(',');
+                
+                csvContent += row + '\n';
+            });
+            
+            // Download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `songs_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            $('#syncLog').text(`💾 ${globalData.length} şarkı CSV olarak indirildi`).css("color", "lime");
+        } catch (error) {
+            $('#syncLog').text("❌ CSV export hatası: " + error.message).css("color", "red");
+        }
+    }
+    
+    // CSV Parse (pushToDB içinde kullanılacak)
+    function parseCSV(csvText) {
+        const lines = csvText.trim().split('\n');
+        if (lines.length < 2) return [];
+        
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"(.*)"$/, '$1'));
+        const songs = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (line === '') continue;
+            
+            const values = [];
+            let currentValue = '';
+            let inQuotes = false;
+            
+            for (let j = 0; j < line.length; j++) {
+                const char = line[j];
+                
+                if (char === '"') {
+                    if (inQuotes && j + 1 < line.length && line[j + 1] === '"') {
+                        currentValue += '"';
+                        j++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    values.push(currentValue.trim());
+                    currentValue = '';
+                } else {
+                    currentValue += char;
+                }
+            }
+            values.push(currentValue.trim());
+            
+            const song = {};
+            headers.forEach((header, index) => {
+                let value = values[index] || '';
+                
+                if (value.startsWith('"') && value.endsWith('"')) {
+                    value = value.slice(1, -1).replace(/""/g, '"');
+                }
+                
+                switch (header) {
+                    case 'id':
+                        song[header] = parseInt(value) || 0;
+                        break;
+                    case 'musicQuality':
+                    case 'lyricsQuality':
+                    case 'originality':
+                        song[header] = parseInt(value) || 21;
+                        break;
+                    case 'price':
+                        song[header] = parseInt(value) || 0;
+                        break;
+                    case 'isHit':
+                        song[header] = value.toLowerCase() === 'true';
+                        break;
+                    case 'instruments':
+                        song[header] = value ? value.split(';').filter(i => i.trim()) : [];
+                        break;
+                    default:
+                        song[header] = value;
+                }
+            });
+            
+            if (song.id && song.name) {
+                songs.push(song);
+            }
+        }
+        
+        return songs;
+    }
+    
     // Paste from SongMaster
     function pasteFromClipboard() {
         navigator.clipboard.readText().then(text => {
